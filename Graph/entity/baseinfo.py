@@ -9,7 +9,7 @@ IDE = PyCharm
 """
 import re
 import warnings
-from entity import QccRequest, Person
+from Graph.entity import QccRequest, Person
 from py2neo import Node as NeoNode
 from pyecharts.options import GraphNode as EchartsGraphNode
 

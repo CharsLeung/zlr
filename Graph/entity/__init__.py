@@ -14,5 +14,5 @@ ENTITY_CATEGORY = {
 }
 
 from py2neo import Node as NeoNode
-from entity.base import QccRequest
-from entity.person import Person
+from Graph.entity.base import QccRequest
+from Graph.entity.person import Person

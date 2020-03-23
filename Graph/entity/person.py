@@ -8,7 +8,7 @@ datetime = '2020-03-17 9:46'
 IDE = PyCharm
 """
 import warnings
-from entity import QccRequest, NeoNode
+from Graph.entity import QccRequest, NeoNode
 
 
 class Person(QccRequest):

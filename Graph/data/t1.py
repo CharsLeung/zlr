@@ -12,7 +12,7 @@ from entity.baseinfo import BaseInfo
 from py2neo import Graph, Node, Relationship
 
 graph = Graph('http://localhost:7474', username='neo4j', password='12345')
-# graph.delete_all()
+# Graph.delete_all()
 
 from utils import File
 

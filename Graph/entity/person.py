@@ -13,6 +13,8 @@ from Graph.entity import QccRequest, NeoNode
 
 class Person(QccRequest):
 
+    # label = Person.__class__._
+
     ATTRIBUTES = [
         ['姓名', 'NAME'],
         ['性别', 'SEX'],
@@ -26,13 +28,13 @@ class Person(QccRequest):
         # ''
     }
 
-    def __init__(self,  name=None, sex=None, education=None, url=None, **kwargs):
+    def __init__(self,  NAME=None, SEX=None, EDUCATION=None, URL=None, **kwargs):
         QccRequest.__init__(self)
 
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('姓名')] = name if name is not None else None
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('性别')] = sex if sex is not None else None
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('学历')] = education if education is not None else None
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('链接')] = url if url is not None else None
+        self.BaseAttributes[self.get_englishAttribute_by_chinese('姓名')] = NAME if NAME is not None else None
+        self.BaseAttributes[self.get_englishAttribute_by_chinese('性别')] = SEX if SEX is not None else None
+        self.BaseAttributes[self.get_englishAttribute_by_chinese('学历')] = EDUCATION if EDUCATION is not None else None
+        self.BaseAttributes[self.get_englishAttribute_by_chinese('链接')] = URL if URL is not None else None
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -40,15 +42,16 @@ class Person(QccRequest):
                 if k in cad.keys():
                     self.BaseAttributes[cad[k]] = v
                 elif k in sks:
-                    self.BaseAttributes[self.synonyms[k]] = v
+                    self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of person.')
+                    self.BaseAttributes[k] = v
         pass
 
-    def get_neo_node(self):
-        return NeoNode(
-            'person',
-            **self.BaseAttributes
-        )
+    # def get_neo_node(self):
+    #     return NeoNode(
+    #         'person',
+    #         **self.BaseAttributes
+    #     )
 
 # Person()

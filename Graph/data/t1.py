@@ -7,25 +7,49 @@ author = 'Administrator'
 datetime = '2020-03-18 10:57'
 IDE = PyCharm
 """
-from data.basemodel import read_json
-from entity.baseinfo import BaseInfo
-from py2neo import Graph, Node, Relationship
+import pandas as pd
 
-graph = Graph('http://localhost:7474', username='neo4j', password='12345')
-# Graph.delete_all()
+from Calf.data import BaseModel
+from Graph import workspace
+from Graph.data.utils import get_keys
 
-from utils import File
 
-fs = File.get_all_file('D:\SYR\\20200220\\20200211\\')
-fs = fs[:10]
-for p in fs:
-    js = read_json(p)
-    for d in js:
-        if d['metaModel'] == '基本信息':
-            bi = BaseInfo(d)
-            n1 = bi.get_neo_node()
-            n2 = bi.get_legal_representative().get_neo_node()
-            graph.create(n1)
-            graph.create(n2)
-            graph.create(Relationship(n2, 'LEGAL_REPRESENTATIVE', n1))
+bm = BaseModel(tn='qcc_cq_new')
+enterprises = bm.aggregate(pipeline=[
+            {'$match': {'metaModel': '基本信息'}},
+            # {'$project': {'_id': 1, 'name': 1}}
+        ])
 
+ds = []
+data = []
+keep = ['所属行业']
+i = 0
+for etp in enterprises:
+    i += 1
+    # if i > 10:
+    #     break
+    cs = get_keys(etp, '基本信息', return_value=True,
+                  filter_key=['_id', 'metaModel', 'source', 'url',
+                              'headers', 'get', 'date'])
+    for c in cs:
+        _ = c.split(':')
+        if sum([1 if kp in _[0] else 0 for kp in keep]):
+            data.append([_[0], _[1]])
+
+    if i % 1000 == 0:
+        d = pd.DataFrame(data, columns=['k', 'v'])
+        d = d.groupby(['k'], as_index=False).agg({
+            'v': lambda x: '\n'.join(set([_ for _ in ('\n'.join(list(x))).split('\n')]))
+        })
+        ds.append(d)
+        data.clear()
+    pass
+
+d = pd.DataFrame(data, columns=['k', 'v'])
+d = d.groupby(['k'], as_index=False).agg({
+    'v': lambda x: '\n'.join(set([_ for _ in ('\n'.join(list(x))).split('\n')]))
+})
+ds.append(d)
+ds = pd.concat(ds)
+ds.to_csv(workspace + 'industry.csv', index=False)
+pass

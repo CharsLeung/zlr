@@ -7,11 +7,16 @@ author = 'Administrator'
 datetime = '2020-03-16 18:46'
 IDE = PyCharm
 """
+from Graph.entity import NeoNode
 
 
 class QccRequest:
 
+    # label = ''
+
     ATTRIBUTES = []
+
+    synonyms = {}
 
     def __init__(self, ReturnString=None):
         if ReturnString is not None:
@@ -54,5 +59,22 @@ class QccRequest:
 
     def englishAttributeDict(self):
         return dict((a[1], a[0]) for a in self.ATTRIBUTES)
+
+    @property
+    def label(self):
+        return self.__class__.__name__
+
+    def get_neo_node(self, primarylabel=None, primarykey=None):
+        if sum([1 if v is not None else 0 for v in self.BaseAttributes.values()]):
+            n = NeoNode(self.label, **self.BaseAttributes)
+            if primarylabel is not None:
+                n.__primarylabel__ = primarylabel
+            else:
+                n.__primarylabel__ = self.label
+            if primarykey is not None:
+                n.__primarykey__ = primarykey
+            return n
+        else:
+            return None
 
 

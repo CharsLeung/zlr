@@ -7,19 +7,42 @@ author = 'Administrator'
 datetime = '2020-03-17 11:21'
 IDE = PyCharm
 """
+import cpca
 
-class Address:
+from Graph.entity import QccRequest
 
-    def __init__(self, name):
-        self.name = name
+
+class Address(QccRequest):
+
+    ATTRIBUTES = [
+        ['ADDRESS', '地址'],
+        ['PROVINCE', '省'],
+        ['CITY', '市'],
+        ['COUNTY', '区'],
+        ['DETAIL', '详细地址']
+    ]
+
+    def __init__(self, address):
+        QccRequest.__init__(self)
+        self.BaseAttributes = {'ADDRESS': address}
+        self.__split_levels__()
         pass
 
-    def get_level_1(self):
+    def __split_levels__(self):
         """
         获取一级省、直辖市、自治区、特区
         :return:
         """
-        if '省' in self.name:
-            return self.name.split('省')[0] + '省'
+        # cpca 还带有绘图功能
+        _ = cpca.transform([self.BaseAttributes['ADDRESS']])
+        _ = _.to_dict(orient='index')[0]
+        self.BaseAttributes['PROVINCE'] = _['省']
+        self.BaseAttributes['CITY'] = _['市']
+        self.BaseAttributes['COUNTY'] = _['区']
+        self.BaseAttributes['DETAIL'] = _['地址']
+        pass
 
+
+# Address('重庆市渝中区上清寺路9号环球广场7楼')
+# pass
 

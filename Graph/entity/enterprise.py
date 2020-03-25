@@ -9,12 +9,12 @@ IDE = PyCharm
 """
 import re
 import warnings
-from Graph.entity import QccRequest, Person
+from Graph.entity import QccRequest, Person, Address, ShareHolder
 from py2neo import Node as NeoNode
-from pyecharts.options import GraphNode as EchartsGraphNode
+# from pyecharts.options import GraphNode as EchartsGraphNode
 
 
-class BaseInfo(QccRequest):
+class Enterprise(QccRequest):
     entity_category_index = 1
 
     # 属性对照表
@@ -84,44 +84,91 @@ class BaseInfo(QccRequest):
         pass
 
     def get_echarts_node(self):
-        return EchartsGraphNode(
-            name=self.name,
-            category=self.entity_category_index,
-
-        )
+        # return EchartsGraphNode(
+        #     name=self.name,
+        #     category=self.entity_category_index,
+        #
+        # )
         pass
 
-    def get_neo_node(self):
-        return NeoNode(
-            'enterprise',
-            id=self.id,
-            name=self.name,
-            update_date=self.update_date,
+    def get_neo_node(self, primarylabel=None, primarykey=None):
+        n = NeoNode(
+            self.label,
+            URL=self.url,
+            NAME=self.name,
+            UPDATE_DATE=self.update_date,
             **self.BaseAttributes
         )
+        if primarylabel is not None:
+            n.__primarylabel__ = primarylabel
+        else:
+            n.__primarylabel__ = self.label
+        if primarykey is not None:
+            n.__primarykey__ = primarykey
+        return n
 
     def get_legal_representative(self):
         lr = self.content['工商信息']['法定代表人']
+        p = None
         if isinstance(lr, dict):
-            return Person(**lr)
+            p = Person(**lr)
         elif isinstance(lr, list):
             warnings.warn('Generally, there is only one legal '
                           'representative, but multiple.')
-            return Person(**lr[0])
+            p = Person(**lr[0])
         else:
             raise ValueError('Unusual legal representative information.')
+        return p
         pass
 
-    def manager(self):
+    def get_manager(self):
         mgs = []
         if '主要人员' in self.content.keys():
             ms = self.content['主要人员']   # 可能分为工商登记、上市公示两类
-            for m in ms:
-                mgs.append({
-                    'person': Person(**m['人员']),
-                    'position': m['职务']
-                })
+            if isinstance(ms, dict):
+                for k, v in zip(ms.keys(), ms.values()):
+                    for m in v:
+                        mgs.append({
+                            'person': Person(**m['人员']),
+                            'position': m['职务'],
+                            'category': k
+                        })
+            elif isinstance(ms, list):
+                for m in ms:
+                    mgs.append({
+                        'person': Person(**m['人员']),
+                        'position': m['职务']
+                    })
+            else:
+                warnings.warn('Generally, the type of major managers is '
+                              'in (dict, list).')
         return mgs
+        pass
+
+    def get_address(self):
+        return Address(
+            self.BaseAttributes['ADDRESS']
+        )
+
+    def get_share_holder(self):
+        sh = []
+        if '工商股东' in self.content.keys():
+            shs = self.content['工商股东']
+            if isinstance(shs, list):
+                for s in shs:
+                    _ = s.pop('股东')
+                    sh.append({
+                        'share_holder': ShareHolder(**dict(s, **_))
+                    })
+            elif isinstance(shs, dict):
+                _ = shs.pop('股东')
+                sh.append({
+                    'share_holder': ShareHolder(**dict(shs, **_))
+                })
+            else:
+                warnings.warn('Generally, the type of share holders is '
+                              'in (dict, list).')
+        return sh
         pass
 
 

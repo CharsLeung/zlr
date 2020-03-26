@@ -28,6 +28,8 @@ class ShareHolder(QccRequest):
         '链接': '股东链接'
     }
 
+    primarykey = 'SHARE_HOLDER_URL'
+
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
         if len(kwargs):

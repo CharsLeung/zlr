@@ -2,9 +2,9 @@
 
 """
 project = 'zlr'
-file_name = 'industry'
+file_name = 'website'
 author = 'Administrator'
-datetime = '2020/3/25 0025 上午 11:00'
+datetime = '2020/3/26 0026 上午 10:52'
 from = 'office desktop' 
 """
 import warnings
@@ -12,15 +12,20 @@ import warnings
 from Graph.entity import QccRequest
 
 
-class Industry(QccRequest):
+class Website(QccRequest):
 
     ATTRIBUTES = [
-        ['行业名称', 'NAME']
+        ['官网', 'WEBSITE']
     ]
 
-    def __init__(self, NAME=None, **kwargs):
+    synonyms = {
+        '官方网站': '官网',
+        # 'E-MAIL': '邮箱',
+    }
+
+    def __init__(self, website=None, **kwargs):
         QccRequest.__init__(self)
-        self.BaseAttributes['NAME'] = NAME if NAME is not None else None
+        self.BaseAttributes['WEBSITE'] = website if website is not None else None
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -30,7 +35,9 @@ class Industry(QccRequest):
                 elif k in sks:
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
-                    warnings.warn('Undefined key for dict of share holder.')
+                    warnings.warn('Undefined key for dict of website.')
                     self.BaseAttributes[k] = v
         pass
 
+    def __split_levels__(self):
+        pass

@@ -23,7 +23,7 @@ class BaseGraph:
         self.logs = []
         pass
 
-    def to_logs(self, info, tp, name):
+    def to_logs(self, info, tp='LOG', name=''):
         self.logs.append({
             'datetime': dt.datetime.now(),
             'info': info,

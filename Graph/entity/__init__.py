@@ -16,7 +16,12 @@ ENTITY_CATEGORY = {
 from py2neo import Node as NeoNode
 from Graph.entity.base import QccRequest
 from Graph.entity.address import Address
+from Graph.entity.email import Email
+from Graph.entity.telephone import Telephone
+from Graph.entity.website import Website
 from Graph.entity.person import Person
 from Graph.entity.holder import ShareHolder
+from Graph.entity.justice.case import JusticeCase
+from Graph.entity.invested import Invested
 from Graph.entity.enterprise import Enterprise
 from Graph.entity.industry import Industry

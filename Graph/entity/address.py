@@ -22,6 +22,8 @@ class Address(QccRequest):
         ['DETAIL', '详细地址']
     ]
 
+    primarykey = 'ADDRESS'
+
     def __init__(self, address):
         QccRequest.__init__(self)
         self.BaseAttributes = {'ADDRESS': address}

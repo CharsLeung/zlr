@@ -12,7 +12,7 @@ from Graph.entity import NeoNode
 
 class QccRequest:
 
-    # label = ''
+    primarykey = None
 
     ATTRIBUTES = []
 
@@ -62,7 +62,7 @@ class QccRequest:
 
     @property
     def label(self):
-        return self.__class__.__name__
+        return str(self.__class__.__name__)
 
     def get_neo_node(self, primarylabel=None, primarykey=None):
         if sum([1 if v is not None else 0 for v in self.BaseAttributes.values()]):

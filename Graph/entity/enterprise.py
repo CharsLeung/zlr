@@ -9,8 +9,10 @@ IDE = PyCharm
 """
 import re
 import warnings
-from Graph.entity import QccRequest, Person, Address, ShareHolder
+
 from py2neo import Node as NeoNode
+from Graph.entity import QccRequest, Person, Address, \
+    ShareHolder, Invested
 # from pyecharts.options import GraphNode as EchartsGraphNode
 
 
@@ -45,6 +47,8 @@ class Enterprise(QccRequest):
         ['企业地址', 'ENTERPRISE_ADDRESS'],
         ['经营范围', 'BUSINESS_SCOPE'],
     ]
+
+    primarykey = 'URL'
 
     def __init__(self, ReturnString):
         QccRequest.__init__(self, ReturnString)
@@ -109,7 +113,6 @@ class Enterprise(QccRequest):
 
     def get_legal_representative(self):
         lr = self.content['工商信息']['法定代表人']
-        p = None
         if isinstance(lr, dict):
             p = Person(**lr)
         elif isinstance(lr, list):
@@ -117,7 +120,8 @@ class Enterprise(QccRequest):
                           'representative, but multiple.')
             p = Person(**lr[0])
         else:
-            raise ValueError('Unusual legal representative information.')
+            warnings.warn('Unusual legal representative information.')
+            p = Person(**{Person.primarykey: lr})
         return p
         pass
 
@@ -171,4 +175,35 @@ class Enterprise(QccRequest):
         return sh
         pass
 
+    def invest_outer(self):
+        # 对外投资的肯定是企业，但是对外投资这个字段下面很可能确定不到具体的公司
+        iv = []
+        if '对外投资' in self.content.keys():
+            ivs = self.content['对外投资']
+            if isinstance(ivs, list):
+                for i in ivs:
+                    iv.append({
+                        'invested': Invested(**{
+                            '名称': i['被投资企业']['名称'],
+                            '链接': i['被投资企业']['链接'],
+                            '注册资本': i['注册资本'],
+                            '成立日期': i['成立日期'],
+                            '状态': i['状态']
+                        }),
+                        '投资比例': i['投资']['比例'],
+                        '投资数额': i['投资']['数额'],
+                    })
+                    pass
+            if isinstance(ivs, dict):
+                iv.append({
+                    'invested': Invested(**{
+                        '名称': ivs['被投资企业']['名称'],
+                        '链接': ivs['被投资企业']['链接'],
+                        '注册资本': ivs['注册资本'],
+                        '成立日期': ivs['成立日期'],
+                        '状态': ivs['状态']
+                    }),
+                    '投资比例': ivs['投资']['比例'],
+                    '投资数额': ivs['投资']['数额'],
+                })
 

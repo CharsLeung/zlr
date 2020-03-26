@@ -11,3 +11,4 @@ from Graph.relationship.be_in_office import BeInOffice
 from Graph.relationship.located import Located
 from Graph.relationship.legal_representative import LegalRep
 from Graph.relationship.share_holding import ShareHolding
+from Graph.relationship.justice.involve_case import InvolveCase

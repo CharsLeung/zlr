@@ -29,14 +29,14 @@ graph = Graph('http://localhost:7474', username='neo4j', password='12345')
 
 n1 = Person(**{'姓名': 'A', 'URL': 'asd-x', 'name': 'x'}).get_neo_node(primarykey='URL')
 n2 = Person(**{'姓名': 'B', 'URL': 'asd-y', 'name': 'y'}).get_neo_node(primarykey='URL')
-# n3 = Person(**{'姓名': 'C', 'URL': 'asd-z', 'name': 'z'}).get_neo_node(primarykey='URL')
-# r1 = Relationship(n1, 'lr', n2)
-# r2 = Relationship(n2, 'lr', n3)
+n3 = Person(**{'姓名': 'C', 'URL': 'asd-z', 'name': 'z'}).get_neo_node(primarykey='URL')
+r1 = Relationship(n1, 'lr', n2)
+r2 = Relationship(n2, 'lr', n3)
 #
-# tx = graph.begin()
+tx = graph.begin()
 # tx.merge(Subgraph([n1, n2]))
-# tx.merge(Subgraph(relationships=[r1, r2]))
-# tx.commit()
+tx.merge(Subgraph(relationships=[r1, r2]))
+tx.commit()
 
 # nm = NodeMatcher(graph)
 

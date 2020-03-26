@@ -28,6 +28,8 @@ class Person(QccRequest):
         # ''
     }
 
+    primarykey = 'URL'
+
     def __init__(self,  NAME=None, SEX=None, EDUCATION=None, URL=None, **kwargs):
         QccRequest.__init__(self)
 

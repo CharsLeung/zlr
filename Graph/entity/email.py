@@ -23,6 +23,8 @@ class Email(QccRequest):
         'E-MAIL': '邮箱',
     }
 
+    primarykey = 'EMAIL'
+
     def __init__(self, email=None, **kwargs):
         QccRequest.__init__(self)
         self.BaseAttributes['EMAIL'] = email if email is not None else None
@@ -46,6 +48,10 @@ class Email(QccRequest):
             self.BaseAttributes['SERVER'] = None
         else:
             _ = self.BaseAttributes['EMAIL'].split('@')
-            self.BaseAttributes['ACCOUNT'] = _[0]
-            self.BaseAttributes['SERVER'] = _[1]
+            if len(_) > 1:
+                self.BaseAttributes['ACCOUNT'] = _[0]
+                self.BaseAttributes['SERVER'] = _[1]
+            else:
+                self.BaseAttributes['ACCOUNT'] = None
+                self.BaseAttributes['SERVER'] = None
         pass

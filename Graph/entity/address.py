@@ -8,8 +8,11 @@ datetime = '2020-03-17 11:21'
 IDE = PyCharm
 """
 import cpca
+import warnings
 
 from Graph.entity import QccRequest
+
+warnings.filterwarnings('ignore')
 
 
 class Address(QccRequest):
@@ -26,7 +29,7 @@ class Address(QccRequest):
 
     def __init__(self, address):
         QccRequest.__init__(self)
-        self.BaseAttributes = {'ADDRESS': address}
+        self.BaseAttributes = {'ADDRESS': str(address).strip()}
         self.__split_levels__()
         pass
 

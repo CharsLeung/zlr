@@ -10,8 +10,8 @@ from = 'office desktop'
 from py2neo import Subgraph
 from Graph import BaseGraph
 from Calf.data import BaseModel
-from Graph.entity import JusticeCase
-from Graph.entity import Enterprise
+from Graph.entity import JusticeCase, Ruling, Involveder
+from Graph.entity import Enterprise, Person, ShareHolder
 from Graph.relationship import InvolveCase
 from Graph.enterprise_graph import EtpGraph
 
@@ -43,6 +43,26 @@ class JusGraph(BaseGraph):
                     nodes.append(jc_n)
         return nodes
 
+    def create_nodes_from_ruling(self, ruling):
+        """
+        创建法律诉讼相关的实体对象，这些对象可以直接在
+        数据库中“法律诉讼”一栏中获取
+        1.裁决文书
+        2.某个司法案件涉及的公司没在数据中，那么应该创建这个公司
+        :param ruling:
+        :return:
+        """
+        nodes = []
+        if len(ruling):
+            for jc in ruling:
+                jc_n = jc.get_neo_node(primarykey=jc.primarykey)
+                if jc_n is None:
+                    self.to_logs('filed initialize ruling Neo node',
+                                 'ERROR')
+                else:
+                    nodes.append(jc_n)
+        return nodes
+
     def create_all_nodes(self):
         """
         创建法律诉讼相关的实体对象，这些对象可以直接在
@@ -51,10 +71,13 @@ class JusGraph(BaseGraph):
         2.某个司法案件涉及的公司没在数据中，那么应该创建这个公司
         :return:
         """
-        justices = self.base.aggregate(pipeline=[
-            {'$match': {'metaModel': '法律诉讼'}},
-            # {'$project': {'_id': 1, 'name': 1}}
-        ])
+        # justices = self.base.aggregate(pipeline=[
+        #     {'$match': {'metaModel': '法律诉讼'}},
+        #     # {'$project': {'_id': 1, 'name': 1}}
+        # ])
+        justices = self.base.query(
+            sql={'metaModel': '法律诉讼'},
+            no_cursor_timeout=True)
         nodes = []
         eg = EtpGraph()
         for j in justices:
@@ -81,10 +104,17 @@ class JusGraph(BaseGraph):
                     # etp_n = etp.get_neo_node(primarykey=etp.primarykey)
                     # nodes.append(etp_n)
 
-            justice_case_info = j['content']['司法案件']
-            jcs = JusticeCase.create_from_dict(justice_case_info)
-            jcs_n = self.create_nodes_from_justice_case(jcs)
-            nodes += jcs_n
+            if '司法案件' in j['content'].keys():
+                justice_case_info = j['content']['司法案件']
+                jcs = JusticeCase.create_from_dict(justice_case_info)
+                jcs_n = self.create_nodes_from_justice_case(jcs)
+                nodes += jcs_n
+            if '裁决文书' in j['content'].keys():
+                ruling_info = j['content']['裁决文书']
+                # 返回的是[[Ruling, 相关对象],[]...]
+                rls = Ruling.create_from_dict(ruling_info)
+                rls_n = self.create_nodes_from_justice_case([r[0] for r in rls])
+                nodes += rls_n
             if len(nodes) > 100:
                 tx = self.graph.begin()
                 tx.merge(Subgraph(nodes))
@@ -93,11 +123,12 @@ class JusGraph(BaseGraph):
                 return
             pass
 
-    def create_relationship_from_justice_case(self, suspect, justice_case):
+    def create_relationship_from_justice_case(self, suspect, justice_case, **kwargs):
         """
         enterprise or person -[involve_case]->justice case
         :param suspect:
         :param justice_case:
+        :param kwargs:
         :return:
         """
         rps = []
@@ -108,7 +139,7 @@ class JusGraph(BaseGraph):
                              'ERROR')
             else:
                 rps.append(InvolveCase(
-                    suspect, jc_n
+                    suspect, jc_n, **kwargs
                 ).get_relationship())
         return rps
 
@@ -142,10 +173,54 @@ class JusGraph(BaseGraph):
                     # 这个企业的基本关系，因此需要添加其基本关系
                     relationships += eg.create_relationship_from_enterprise_baseinfo(etp)
                     pass
-            justice_case_info = j['content']['司法案件']
-            jcs = JusticeCase.create_from_dict(justice_case_info)
-            rps = self.create_relationship_from_justice_case(etp_n, jcs)
-            relationships += rps
+
+            if '司法案件' in j['content'].keys():
+                justice_case_info = j['content']['司法案件']
+                jcs = JusticeCase.create_from_dict(justice_case_info)
+                rps = self.create_relationship_from_justice_case(etp_n, jcs)
+                relationships += rps
+            if '裁决文书' in j['content'].keys():
+                ruling_info = j['content']['裁决文书']
+                # 返回的是[[Ruling, 相关对象],[]...]
+                rls = Ruling.create_from_dict(ruling_info)
+                # rls_n = self.create_nodes_from_justice_case([r[0] for r in rls])
+                for ruling, involve in rls:
+                    inv_n = None
+                    for inv in involve:
+                        # 案件相关主体
+                        # 1.现在企业中匹配
+                        inv_n = self.NodeMatcher.match(
+                            Enterprise.label
+                        ).where('_.NAME = {} OR _.URL = {}'.format(
+                            inv[1], inv[2])).first()
+                        if inv_n is not None:
+                            # 匹配到了一个企业
+                            relationships.append(
+                                InvolveCase(
+                                    inv_n, ruling, **{'案件身份': inv[0]}
+                                ).get_relationship()
+                            )
+                            continue
+                        # 2.匹配自然人
+                        inv_n = self.NodeMatcher.match(
+                            Person.label
+                        ).where('_.NAME = {} OR _.URL = {}'.format(
+                            inv[1], inv[2])).first()
+                        if inv_n is not None:
+                            # 匹配到了一个自然人
+                            relationships.append(
+                                InvolveCase(
+                                    inv_n, ruling, **{'案件身份': inv[0]}
+                                ).get_relationship()
+                            )
+                            continue
+                        # 3.以上两者都没匹配到的时候，创建这个案件参与者
+                        # 实际上还可以到其他实体中去匹配，但那些
+                        relationships.append(
+                            InvolveCase(
+                                inv_n, ruling, **{'案件身份': inv[0]}
+                            ).get_relationship()
+                        )
 
             if len(relationships) > 100:
                 tx = self.graph.begin()
@@ -158,4 +233,4 @@ class JusGraph(BaseGraph):
 
 jg = JusGraph()
 jg.create_all_nodes()
-jg.create_all_relationship()
+# jg.create_all_relationship()

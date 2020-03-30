@@ -12,7 +12,9 @@ import warnings
 
 from py2neo import Node as NeoNode
 from Graph.entity import QccRequest, Person, Address, \
-    ShareHolder, Invested
+    ShareHolder, Invested, Telephone, Email
+
+
 # from pyecharts.options import GraphNode as EchartsGraphNode
 
 
@@ -67,8 +69,6 @@ class Enterprise(QccRequest):
         ctf = self.content['认证信息']
         # ctf_keys = ctf.keys()
         # ks = ['电话', '官网', '邮箱', '地址', '简介']
-        # tel = re.search('\d+[-]\d+', ctf['电话'])
-        # tel = tel.group(0) if tel is not None else None
         for k, v in zip(ctf.keys(), ctf.values()):
             _ = self.get_englishAttribute_by_chinese(k)
             if _ is not None:
@@ -128,7 +128,7 @@ class Enterprise(QccRequest):
     def get_manager(self):
         mgs = []
         if '主要人员' in self.content.keys():
-            ms = self.content['主要人员']   # 可能分为工商登记、上市公示两类
+            ms = self.content['主要人员']  # 可能分为工商登记、上市公示两类
             if isinstance(ms, dict):
                 for k, v in zip(ms.keys(), ms.values()):
                     for m in v:
@@ -207,3 +207,20 @@ class Enterprise(QccRequest):
                     '投资数额': ivs['投资']['数额'],
                 })
 
+    def get_telephone_number(self):
+        tel = self.BaseAttributes['TELEPHONE']
+        # tel = re.search('\d+[-]\d+', tel)
+        # tel = tel.group(0) if tel is not None else None
+        if tel is not None and len(tel):
+            return Telephone(telephone=tel)
+        else:
+            return None
+
+    def get_email(self):
+        em = self.BaseAttributes['EMAIL']
+        # em = re.search('[1]+@([0-9a-z]+.)+[a-z]+$', em, re.I)
+        # em = em.group(0) if em is not None else None
+        if em is not None and len(em):
+            return Email(email=em)
+        else:
+            return None

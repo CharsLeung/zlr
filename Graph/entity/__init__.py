@@ -22,6 +22,8 @@ from Graph.entity.website import Website
 from Graph.entity.person import Person
 from Graph.entity.holder import ShareHolder
 from Graph.entity.justice.case import JusticeCase
+from Graph.entity.justice.ruling import Ruling
+from Graph.entity.justice.involveder import Involveder
 from Graph.entity.invested import Invested
 from Graph.entity.enterprise import Enterprise
 from Graph.entity.industry import Industry

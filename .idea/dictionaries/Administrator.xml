@@ -2,9 +2,12 @@
   <dictionary name="Administrator">
     <words>
       <w>baseinfo</w>
+      <w>echarts</w>
+      <w>involveder</w>
       <w>leung</w>
       <w>primarykey</w>
       <w>primarylabel</w>
+      <w>subgraph</w>
     </words>
   </dictionary>
 </component>

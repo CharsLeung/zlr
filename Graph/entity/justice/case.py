@@ -41,6 +41,10 @@ class JusticeCase(QccRequest):
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of justice case.')
+        if 'CASE_IDENTITY' in self.BaseAttributes.keys():
+            self.CASE_IDENTITY = self.BaseAttributes.pop('CASE_IDENTITY')
+        else:
+            self.CASE_IDENTITY = None
         pass
 
     @classmethod

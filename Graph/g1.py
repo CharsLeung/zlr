@@ -15,6 +15,7 @@ from Graph.relationship import *
 
 # MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r
 # MATCH (n:Person) where size((n)-[:LEGAL_REPRESENTATIVE]->())>2 return n
+# MATCH p=(e1:Enterprise)-[*..20]-(e2:Enterprise) where e1.NAME='重庆市龙井泡沫塑料有限公司' and e2.NAME='重庆玮兰床垫家具有限公司' RETURN p
 
 
 graph = Graph('http://localhost:7474', username='neo4j', password='12345')

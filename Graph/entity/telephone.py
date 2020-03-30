@@ -25,6 +25,8 @@ class Telephone(QccRequest):
         '号码': '电话'
     }
 
+    primarykey = 'TELEPHONE'
+
     def __init__(self, telephone=None, **kwargs):
         QccRequest.__init__(self)
         self.BaseAttributes['TELEPHONE'] = telephone if telephone is not None else None

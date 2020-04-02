@@ -67,7 +67,7 @@ class BaseGraph:
                     tx.merge(Subgraph(nodes=nds))
                     tx.commit()
                 except Exception as e:
-                    self.to_logs('commit subgraph to database raise () on '
+                    self.to_logs('commit subgraph to database raise ({}) on '
                                  '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
                                  'EXCEPTION')
                     self.graph_merge_nodes(nds, toleration)
@@ -88,7 +88,7 @@ class BaseGraph:
                 tx.merge(Subgraph(relationships=relationships))
                 tx.commit()
         except Exception as e:
-            self.to_logs('commit subgraph to database raise ()'.format(e),
+            self.to_logs('commit subgraph to database raise ({})'.format(e),
                          'EXCEPTION')
             l = len(relationships)
             if l < toleration:
@@ -101,7 +101,7 @@ class BaseGraph:
                     tx.merge(Subgraph(relationships=rps))
                     tx.commit()
                 except Exception as e:
-                    self.to_logs('commit subgraph to database raise () on '
+                    self.to_logs('commit subgraph to database raise ({}) on '
                                  '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
                                  'EXCEPTION')
                     self.graph_merge_nodes(rps, toleration)

@@ -52,13 +52,16 @@ class Enterprise(QccRequest):
 
     primarykey = 'URL'
 
-    def __init__(self, ReturnString):
+    def __init__(self, ReturnString=None):
         QccRequest.__init__(self, ReturnString)
-        if self.metaModel != '基本信息':
-            raise TypeError('')
+        if ReturnString is None:
+            pass
+        else:
+            if self.metaModel != '基本信息':
+                raise TypeError('')
 
-        self._certifications()
-        self._business()
+            self._certifications()
+            self._business()
         pass
 
     def _certifications(self):
@@ -224,3 +227,4 @@ class Enterprise(QccRequest):
             return Email(email=em)
         else:
             return None
+

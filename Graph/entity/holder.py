@@ -15,8 +15,8 @@ from Graph.entity import QccRequest, NeoNode
 class ShareHolder(QccRequest):
 
     ATTRIBUTES = [
-        ['股东名称', 'SHARE_HOLDER_NAME'],
-        ['股东链接', 'SHARE_HOLDER_URL'],
+        ['股东名称', 'NAME'],
+        ['股东链接', 'URL'],
         ['持股比例', 'HOLDING_RATIO'],
         ['认缴出资额', 'SUBSCRIPTION_AMOUNT'],
         ['认缴出资日期', 'SUBSCRIPTION_DATE']
@@ -28,7 +28,7 @@ class ShareHolder(QccRequest):
         '链接': '股东链接'
     }
 
-    primarykey = 'SHARE_HOLDER_URL'
+    primarykey = 'URL'
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)

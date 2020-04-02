@@ -26,7 +26,8 @@ class QccRequest:
                 try:
                     ReturnString = eval(ReturnString)
                 except Exception:
-                    raise TypeError('')
+                    print(ReturnString)
+                    raise TypeError('not json object')
             ks = ReturnString.keys()
             self.name = ReturnString['name'] if 'name' in ks else None
             self.metaModel = ReturnString['metaModel'] if 'metaModel' in ks else None

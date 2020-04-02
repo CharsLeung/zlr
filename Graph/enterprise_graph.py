@@ -195,9 +195,12 @@ class EtpGraph(BaseGraph):
                     s_ = s['share_holder']
                     # 1.在所有公司里面去找
                     sh_n_ed = self.NodeMatcher.match(
-                        str(etp.label),
-                        **{etp.primarykey: s_.BaseAttributes[s_.primarykey]}
-                    ).first()
+                        etp.label,
+                        # **{etp.primarykey: s_.BaseAttributes[s_.primarykey]}
+                    ).where('_.NAME = "{}" OR _.{} = "{}"'.format(
+                        s_.BaseAttributes['NAME'], etp.primarykey,
+                        s_.BaseAttributes[s_.primarykey]
+                    )).first()
                     if sh_n_ed is None:
                         # 2.在人里面去找
                         sh_n_ed = self.NodeMatcher.match(
@@ -218,8 +221,8 @@ class EtpGraph(BaseGraph):
                     else:
                         # 此时的sh_n_ed可能就是一个企业或者个人，
                         # ShareHolding的属性需要补充进来
-                        s_.BaseAttributes.pop('SHARE_HOLDER_NAME')
-                        s_.BaseAttributes.pop('SHARE_HOLDER_URL')
+                        s_.BaseAttributes.pop('NAME')
+                        s_.BaseAttributes.pop('URL')
                         rps.append(ShareHolding(
                             sh_n_ed, etp_n, **s_.BaseAttributes
                         ).get_relationship())
@@ -292,9 +295,6 @@ class EtpGraph(BaseGraph):
             if len(relationships) > 1000:
                 i += 1
                 self.graph_merge_relationships(relationships)
-                # tx = self.graph.begin()
-                # tx.merge(Subgraph(relationships=relationships))
-                # tx.commit()
                 print(SuccessMessage('{}:success merge relationships to database '
                                      'round {} and deal {}/{} enterprise,and'
                                      ' merge {} relationships.'.format(

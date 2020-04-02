@@ -2,29 +2,36 @@
 
 """
 project = zlr
-file_name = involveder
+file_name = possession
 author = Administrator
-datetime = 2020/3/30 0030 下午 14:21
+datetime = 2020/4/1 0001 下午 15:42
 from = office desktop
 """
 import warnings
 from Graph.entity import QccRequest
 
 
-class Involveder(QccRequest):
+class Possession(QccRequest):
 
     """
-    案件参与者
+    股权出质标的物，一般情况下出质的标的物都是企业
+    所有, 所有权, 属地, 领地, 领土, 货
     """
+
     ATTRIBUTES = [
-        ['名称', 'NAME'],
-        ['链接', 'URL']
+        ['标的名称', 'NAME'],
+        ['标的链接', 'URL'],
+        # ['出质股权数额', 'AMOUNT'],
+        # ['登记日期', 'REGISTRATION_DATE'],
+        # ['登记编号', 'REGISTRATION_NUM'],
+        # ['状态', 'STATUS']
     ]
 
-    # 案件参与者不见得有链接，但一定会有一个名称
-    # 但有一个问题，名称很有可能存在重复的，类似
-    # 有很多同名的人,所以，根据基础属性算一个哈希
-    # ID
+    synonyms = {
+        '企业': '标的名称',
+        '链接': '标的链接'
+    }
+
     primarykey = 'HASH_ID'
 
     def __init__(self, **kwargs):
@@ -38,6 +45,6 @@ class Involveder(QccRequest):
                 elif k in sks:
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
-                    warnings.warn('Undefined key for dict of case involveder.')
+                    warnings.warn('Undefined key for dict of possession subject.')
         self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
         pass

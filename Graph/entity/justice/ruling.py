@@ -84,11 +84,15 @@ class Ruling(QccRequest):
         c2 = case_identity.pop('案件身份')
         cnt = c2['内容'].replace('-\n', '-').split('\n')
         cnt = [c.split('-') for c in cnt]
+        inv = []
         for i in range(len(c2['链接'])):
             c = cnt[i]
             c.append(c2['链接'][i]['链接'])
-            cnt[i] = c
-        case_identity['涉案对象'] = cnt
+            if len(c) == 3:
+                inv.append(c)
+            else:
+                warnings.warn('裁决文书：异常的案件身份({})'.format('-'.join(c)))
+        case_identity['涉案对象'] = inv
         return case_identity
 
 

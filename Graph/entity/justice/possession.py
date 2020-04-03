@@ -47,4 +47,7 @@ class Possession(QccRequest):
                 else:
                     warnings.warn('Undefined key for dict of possession subject.')
         self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass

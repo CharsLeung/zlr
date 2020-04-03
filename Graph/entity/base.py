@@ -7,10 +7,12 @@ author = 'Administrator'
 datetime = '2020-03-16 18:46'
 IDE = PyCharm
 """
+import re
+
 from Graph.entity import NeoNode
 
 
-class QccRequest:
+class QccRequest(object):
 
     primarykey = None
 
@@ -19,6 +21,7 @@ class QccRequest:
     synonyms = {}
 
     def __init__(self, ReturnString=None):
+        self.BaseAttributes = {}
         if ReturnString is not None:
             if isinstance(ReturnString, dict):
                 pass
@@ -35,9 +38,8 @@ class QccRequest:
             self.headers = ReturnString['headers'] if 'headers' in ks else None
             self.get = ReturnString['get'] if 'get' in ks else None
             self.update_date = ReturnString['date'] if 'date' in ks else None
-            self.id = ReturnString['url'] if 'url' in ks else None
+            # self.id = ReturnString['url'] if 'url' in ks else None
             self.content = ReturnString['content'] if 'content' in ks else None
-        self.BaseAttributes = {}
         pass
 
     def content_keys(self):
@@ -77,5 +79,10 @@ class QccRequest:
             return n
         else:
             return None
+
+    @staticmethod
+    def parser_url(url):
+        _ = re.search('/[a-zA-Z_]+_\w{32}', url).group(0)
+        return _[1:]
 
 

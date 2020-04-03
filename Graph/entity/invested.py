@@ -47,4 +47,7 @@ class Invested(QccRequest):
                 else:
                     warnings.warn('Undefined key for dict of invested.')
                     self.BaseAttributes[k] = v
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass

@@ -15,7 +15,7 @@ from Graph.entity import QccRequest, NeoNode
 class ExecutedPerson(QccRequest):
     ATTRIBUTES = [
         ['案号名称', 'CASE_NAME'],
-        ['案号链接', 'CASE_URL'],
+        ['案号链接', 'URL'],
         ['立案日期', 'CASE_REGISTER_DATE'],
         ['执行标的', 'CASE_EXECUTED_SUBJECT'],
         ['执行法院', 'CASE_EXECUTED_COURT'],
@@ -36,10 +36,7 @@ class ExecutedPerson(QccRequest):
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of executed person.')
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass
-
-    def get_neo_node(self):
-        return NeoNode(
-            'justice_case',
-            **self.BaseAttributes
-        )

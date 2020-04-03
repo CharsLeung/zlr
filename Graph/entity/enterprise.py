@@ -19,10 +19,11 @@ from Graph.entity import QccRequest, Person, Address, \
 
 
 class Enterprise(QccRequest):
-    entity_category_index = 1
+    # entity_category_index = 1
 
     # 属性对照表
     ATTRIBUTES = [
+        ['名称', 'NAME'],
         ['电话', 'TELEPHONE'],
         ['官网', 'WEBSITE'],
         ['邮箱', 'EMAIL'],
@@ -59,9 +60,11 @@ class Enterprise(QccRequest):
         else:
             if self.metaModel != '基本信息':
                 raise TypeError('')
-
+            self.BaseAttributes['URL'] = self.parser_url(self.url)
+            self.BaseAttributes['NAME'] = self.name.strip()
             self._certifications()
             self._business()
+            # if
         pass
 
     def _certifications(self):
@@ -70,8 +73,6 @@ class Enterprise(QccRequest):
         :return:
         """
         ctf = self.content['认证信息']
-        # ctf_keys = ctf.keys()
-        # ks = ['电话', '官网', '邮箱', '地址', '简介']
         for k, v in zip(ctf.keys(), ctf.values()):
             _ = self.get_englishAttribute_by_chinese(k)
             if _ is not None:
@@ -101,8 +102,8 @@ class Enterprise(QccRequest):
     def get_neo_node(self, primarylabel=None, primarykey=None):
         n = NeoNode(
             self.label,
-            URL=self.url,
-            NAME=self.name,
+            # URL=self.url,
+            # NAME=self.name,
             UPDATE_DATE=self.update_date,
             **self.BaseAttributes
         )

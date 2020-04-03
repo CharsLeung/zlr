@@ -24,7 +24,7 @@ class EtpGraph(BaseGraph):
 
     def __init__(self):
         BaseGraph.__init__(self)
-        self.base = BaseModel(tn='qcc_cq_new')
+        self.base = BaseModel(tn='qcc', dbname='sit')
         pass
 
     def create_nodes_from_enterprise_baseinfo(self, enterprise_baseinfo):
@@ -57,7 +57,7 @@ class EtpGraph(BaseGraph):
             else:
                 nodes.append(lr_n)
         except Exception as e:
-            self.to_logs('deal legal representative raise ()'.format(e),
+            self.to_logs('deal legal representative raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         try:
             ms = etp.get_manager()
@@ -72,7 +72,7 @@ class EtpGraph(BaseGraph):
                     else:
                         nodes.append(m_n)
         except Exception as e:
-            self.to_logs('deal major managers raise ()'.format(e),
+            self.to_logs('deal major managers raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         # sh = etp.get_share_holder()
         try:
@@ -84,7 +84,7 @@ class EtpGraph(BaseGraph):
             else:
                 nodes.append(dz_n)
         except Exception as e:
-            self.to_logs('deal address raise ()'.format(e),
+            self.to_logs('deal address raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         return nodes
@@ -119,15 +119,22 @@ class EtpGraph(BaseGraph):
             if len(nodes) > 1000:
                 i += 1
                 self.graph_merge_nodes(nodes)
-                # tx = self.graph.begin()
-                # tx.merge(Subgraph(nodes))
-                # tx.commit()
                 print(SuccessMessage('{}:success merge nodes to database '
                                      'round {} and deal {}/{} enterprise,and'
                                      ' merge {} nodes.'.format(
                     dt.datetime.now(), i, j, etp_count, len(nodes)
                 )))
                 nodes.clear()
+        if len(nodes):
+            i += 1
+            self.graph_merge_nodes(nodes)
+            print(SuccessMessage('{}:success merge nodes to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} nodes.'.format(
+                dt.datetime.now(), i, j, etp_count, len(nodes)
+            )))
+            nodes.clear()
+        pass
 
     def create_relationship_from_enterprise_baseinfo(self, enterprise_baseinfo):
         """
@@ -282,7 +289,10 @@ class EtpGraph(BaseGraph):
         #     # {'$project': {'_id': 1, 'name': 1}}
         # ])
         enterprises = self.base.query(
-            sql={'metaModel': '基本信息'},
+            sql={
+                'metaModel': '基本信息',
+                # 'name': '重庆银翔摩托车制造有限公司'
+            },
             no_cursor_timeout=True)
         i, j = 0, 0
         etp_count = enterprises.count()
@@ -302,3 +312,20 @@ class EtpGraph(BaseGraph):
                 )))
                 relationships.clear()
                 # return
+
+        if len(relationships):
+            i += 1
+            self.graph_merge_relationships(relationships)
+            print(SuccessMessage('{}:success merge relationships to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} relationships.'.format(
+                dt.datetime.now(), i, j, etp_count, len(relationships)
+            )))
+            relationships.clear()
+        pass
+
+
+# eg = EtpGraph()
+# eg.create_all_nodes()
+# eg.create_all_relationship()
+# [print(lg) for lg in eg.logs]

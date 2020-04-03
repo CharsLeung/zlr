@@ -54,7 +54,7 @@ class BaseGraph:
                 tx.merge(Subgraph(nodes=nodes))
                 tx.commit()
         except Exception as e:
-            self.to_logs('commit subgraph to database raise ()'.format(e),
+            self.to_logs('commit subgraph to database raise ({})'.format(e),
                          'EXCEPTION')
             l = len(nodes)
             if l < toleration:

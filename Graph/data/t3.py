@@ -17,7 +17,6 @@ bm = BaseModel(tn='qcc_cq_new_1')
 data = []
 count = 0
 for p in fs:
-    try:
         js = read_json(p)
         data += js
         if len(data) > 0:
@@ -26,5 +25,5 @@ for p in fs:
             print('deal:', count)
             bm.insert_batch(data)
             data.clear()
-    except Exception as e:
-        print(e)
+
+pass

@@ -21,7 +21,7 @@ class JusGraph(BaseGraph):
 
     def __init__(self):
         BaseGraph.__init__(self)
-        self.base = BaseModel(tn='qcc_cq_new')
+        self.base = BaseModel(tn='qcc', dbname='sit')
         pass
 
     def create_nodes_from_justice_case(self, justice_case):
@@ -113,25 +113,31 @@ class JusGraph(BaseGraph):
                 jcs = JusticeCase.create_from_dict(justice_case_info)
                 jcs_n = self.create_nodes_from_justice_case(jcs)
                 nodes += jcs_n
-            if '裁决文书' in j['content'].keys():
-                ruling_info = j['content']['裁决文书']
+            if '裁判文书' in j['content'].keys():
+                ruling_info = j['content']['裁判文书']
                 # 返回的是[[Ruling, 相关对象],[]...]
                 rls = Ruling.create_from_dict(ruling_info)
                 rls_n = self.create_nodes_from_justice_case([r[0] for r in rls])
                 nodes += rls_n
             if len(nodes) > 1000:
                 i += 1
-                self.graph_merge_nodes(nodes)
-                # tx = self.graph.begin()
-                # tx.merge(Subgraph(nodes))
-                # tx.commit()
+                # self.graph_merge_nodes(nodes)
                 print(SuccessMessage('{}:success merge nodes to database '
                                      'round {} and deal {}/{} enterprise,and'
                                      ' merge {} nodes.'.format(
                     dt.datetime.now(), i, k, etp_count, len(nodes)
                 )))
                 nodes.clear()
-            pass
+        if len(nodes):
+            i += 1
+            # self.graph_merge_nodes(nodes)
+            print(SuccessMessage('{}:success merge nodes to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} nodes.'.format(
+                dt.datetime.now(), i, k, etp_count, len(nodes)
+            )))
+            nodes.clear()
+        pass
 
     def create_relationship_from_justice_case(self, suspect, justice_case, **kwargs):
         """
@@ -206,8 +212,8 @@ class JusGraph(BaseGraph):
                 #     etp_n, jcs)
                 # relationships += rps
                 pass
-            if '裁决文书' in j['content'].keys():
-                ruling_info = j['content']['裁决文书']
+            if '裁判文书' in j['content'].keys():
+                ruling_info = j['content']['裁判文书']
                 # 返回的是[[Ruling, 相关对象],[]...]
                 rls = Ruling.create_from_dict(ruling_info)
                 for ruling, involve in rls:
@@ -216,27 +222,30 @@ class JusGraph(BaseGraph):
                         # 案件相关主体
                         # 1.先在企业中匹配
                         # 先判断是不是当前的企业
-                        if j['name'] == inv[1] or j['url'] == inv[2]:
-                            # 如果是，直接关联起来
-                            relationships.append(
-                                InvolveCase(
-                                    etp_n, rul_n, **{'案件身份': inv[0]}
-                                ).get_relationship()
-                            )
-                            continue
-                        else:
-                            inv_n = self.NodeMatcher.match(
-                                etp.label
-                            ).where('_.NAME = "{}" OR _.URL = "{}"'.format(
-                                inv[1], inv[2])).first()
-                            if inv_n is not None:
-                                # 匹配到了一个企业
+                        try:
+                            if j['name'] == inv[1] or j['url'] == inv[2]:
+                                # 如果是，直接关联起来
                                 relationships.append(
                                     InvolveCase(
-                                        inv_n, rul_n, **{'案件身份': inv[0]}
+                                        etp_n, rul_n, **{'案件身份': inv[0]}
                                     ).get_relationship()
                                 )
                                 continue
+                            else:
+                                inv_n = self.NodeMatcher.match(
+                                    etp.label
+                                ).where('_.NAME = "{}" OR _.URL = "{}"'.format(
+                                    inv[1], inv[2])).first()
+                                if inv_n is not None:
+                                    # 匹配到了一个企业
+                                    relationships.append(
+                                        InvolveCase(
+                                            inv_n, rul_n, **{'案件身份': inv[0]}
+                                        ).get_relationship()
+                                    )
+                                    continue
+                        except Exception as e:
+                            print(e)
                         # 2.匹配自然人
                         inv_n = self.NodeMatcher.match(
                             prs.label
@@ -271,8 +280,16 @@ class JusGraph(BaseGraph):
                     dt.datetime.now(), i, k, etp_count, len(relationships)
                 )))
                 relationships.clear()
+        if len(relationships):
+            i += 1
+            self.graph_merge_relationships(relationships)
+            print(SuccessMessage('{}:success merge relationships to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} relationships.'.format(
+                dt.datetime.now(), i, k, etp_count, len(relationships)
+            )))
+            relationships.clear()
         pass
-
 
 # jg = JusGraph()
 # jg.create_all_nodes()

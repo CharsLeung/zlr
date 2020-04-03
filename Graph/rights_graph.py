@@ -62,3 +62,4 @@ class RightsGraph(BaseGraph):
                     etp = Enterprise(**{'名称': r['name']})
                     etp_n = etp.get_neo_node(primarykey=etp.primarykey)
                     pass
+

@@ -82,7 +82,16 @@ class QccRequest(object):
 
     @staticmethod
     def parser_url(url):
-        _ = re.search('/[a-zA-Z_]+_\w{32}', url).group(0)
-        return _[1:]
+        try:
+            _ = re.search('/[a-zA-Z_]+_\w{32}', url)
+            if _ is not None:
+                # print('"{}",'.format(_.group(0)))
+                _ = 'https://www.qcc.com' + _.group(0) + '.html'
+            else:
+                _ = None
+            return _
+        except Exception as e:
+            print(e)
+            return None
 
 

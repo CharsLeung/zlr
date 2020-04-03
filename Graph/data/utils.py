@@ -10,22 +10,24 @@ from = 'office desktop'
 import json
 import pandas as pd
 
+from Graph.exception import ExceptionInfo
+
 
 def read_json(path):
     try:
         with open(path, encoding='utf-8') as file:
-            # ds = file.readlines()
-            # # ds = json.load(ds)
-            # ds = [json.load(d) for d in ds]
+            ds = file.readlines()
+            # ds = json.load(ds)
+            ds = [eval(d) for d in ds]
             # content = json.load(file)
-            result=[]
-            for line in file:
-                result.append(json.loads(line))
-            ds = result
+            # result = []
+            # for line in file:
+            #     result.append(json.loads(line))
+            # ds = result
         return ds
     except Exception as e:
-        # ExceptionInfo(e)
-        print(e)
+        ExceptionInfo(e)
+        # print(e)
         return []
 
 

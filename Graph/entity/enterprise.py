@@ -51,7 +51,11 @@ class Enterprise(QccRequest):
         ['经营范围', 'BUSINESS_SCOPE'],
     ]
 
-    primarykey = 'URL'
+    synonyms = {
+        '企业地址': '地址'
+    }
+
+    primarykey = 'NAME'
 
     def __init__(self, ReturnString=None):
         QccRequest.__init__(self, ReturnString)
@@ -72,7 +76,16 @@ class Enterprise(QccRequest):
         处理->认证信息
         :return:
         """
-        ctf = self.content['认证信息']
+        if '认证信息' in self.content.keys():
+            ctf = self.content['认证信息']
+        elif '注册信息' in self.content.keys():
+            ctf = self.content['注册信息']
+        else:
+            return
+        if isinstance(ctf, list):
+            if len(ctf) == 0:
+                return
+            ctf = ctf[0]
         for k, v in zip(ctf.keys(), ctf.values()):
             _ = self.get_englishAttribute_by_chinese(k)
             if _ is not None:
@@ -117,6 +130,8 @@ class Enterprise(QccRequest):
 
     def get_legal_representative(self):
         lr = self.content['工商信息']['法定代表人']
+        _ = lr.split('|')
+        lr = {'名称': _[0].split(' ')[0], '链接': _[1]}
         if isinstance(lr, dict):
             p = Person(**lr)
         elif isinstance(lr, list):
@@ -133,20 +148,26 @@ class Enterprise(QccRequest):
         mgs = []
         if '主要人员' in self.content.keys():
             ms = self.content['主要人员']  # 可能分为工商登记、上市公示两类
+
+            def f(i):
+                name = i.pop('姓名')
+                _ = name.split('|')
+                p = {'名称': _[0].split(' ')[0], '链接': _[1]}
+                _ = {
+                    'person': Person(**p),
+                    'position': i['职务'],
+                    # 'category': k
+                }
+                return _
+                pass
+
             if isinstance(ms, dict):
-                for k, v in zip(ms.keys(), ms.values()):
-                    for m in v:
-                        mgs.append({
-                            'person': Person(**m['人员']),
-                            'position': m['职务'],
-                            'category': k
-                        })
+                # for k, v in zip(ms.keys(), ms.values()):
+                #     for m in v:
+                mgs.append(f(ms))
             elif isinstance(ms, list):
                 for m in ms:
-                    mgs.append({
-                        'person': Person(**m['人员']),
-                        'position': m['职务']
-                    })
+                    mgs.append(f(m))
             else:
                 warnings.warn('Generally, the type of major managers is '
                               'in (dict, list).')
@@ -160,19 +181,24 @@ class Enterprise(QccRequest):
 
     def get_share_holder(self):
         sh = []
-        if '工商股东' in self.content.keys():
-            shs = self.content['工商股东']
+        if '股东信息' in self.content.keys():
+            shs = self.content['股东信息']
+
+            def f(i):
+                _ = '股东'
+                for k, v in zip(i.keys(), i.values()):
+                    if _ in k:
+                        _ = k
+                        break
+                _ = i.pop(_)
+                p = {'名称': _[0].split(' ')[0], '链接': _[1]}
+                return {'share_holder': ShareHolder(**dict(i, **p))}
+
             if isinstance(shs, list):
                 for s in shs:
-                    _ = s.pop('股东')
-                    sh.append({
-                        'share_holder': ShareHolder(**dict(s, **_))
-                    })
+                    sh.append(f(s))
             elif isinstance(shs, dict):
-                _ = shs.pop('股东')
-                sh.append({
-                    'share_holder': ShareHolder(**dict(shs, **_))
-                })
+                sh.append(f(shs))
             else:
                 warnings.warn('Generally, the type of share holders is '
                               'in (dict, list).')
@@ -182,34 +208,30 @@ class Enterprise(QccRequest):
     def invest_outer(self):
         # 对外投资的肯定是企业，但是对外投资这个字段下面很可能确定不到具体的公司
         iv = []
+
         if '对外投资' in self.content.keys():
+
+            def f(i):
+                _ = {
+                    'invested': Invested(**{
+                        '名称': i['被投资企业']['名称'],
+                        '链接': i['被投资企业']['链接'],
+                        '注册资本': i['注册资本'],
+                        '成立日期': i['成立日期'],
+                        '状态': i['状态']
+                    }),
+                    '投资比例': i['投资']['比例'],
+                    '投资数额': i['投资']['数额'],
+                }
+                return _
+
             ivs = self.content['对外投资']
             if isinstance(ivs, list):
                 for i in ivs:
-                    iv.append({
-                        'invested': Invested(**{
-                            '名称': i['被投资企业']['名称'],
-                            '链接': i['被投资企业']['链接'],
-                            '注册资本': i['注册资本'],
-                            '成立日期': i['成立日期'],
-                            '状态': i['状态']
-                        }),
-                        '投资比例': i['投资']['比例'],
-                        '投资数额': i['投资']['数额'],
-                    })
+                    iv.append(f(i))
                     pass
             if isinstance(ivs, dict):
-                iv.append({
-                    'invested': Invested(**{
-                        '名称': ivs['被投资企业']['名称'],
-                        '链接': ivs['被投资企业']['链接'],
-                        '注册资本': ivs['注册资本'],
-                        '成立日期': ivs['成立日期'],
-                        '状态': ivs['状态']
-                    }),
-                    '投资比例': ivs['投资']['比例'],
-                    '投资数额': ivs['投资']['数额'],
-                })
+                iv.append(f(ivs))
 
     def get_telephone_number(self):
         tel = self.BaseAttributes['TELEPHONE']

@@ -25,10 +25,12 @@ class ShareHolder(QccRequest):
     synonyms = {
         '股东及出资信息': '股东名称',
         '认缴出资额_万元': '认缴出资额',
-        '链接': '股东链接'
+        '认缴出资额(万元)': '认缴出资额',
+        '链接': '股东链接',
+        '名称': '股东名称'
     }
 
-    primarykey = 'URL'
+    primarykey = 'NAME'
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)

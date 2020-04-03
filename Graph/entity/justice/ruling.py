@@ -30,7 +30,8 @@ class Ruling(QccRequest):
     ]
 
     synonyms = {
-        '案号名称': '案号'
+        '案号名称': '案号',
+        '法院名称': '执行法院',
     }
 
     primarykey = 'CASE_NUM'
@@ -87,18 +88,20 @@ class Ruling(QccRequest):
         :return:
         """
         # _ = {}
-        c1 = case_identity.pop('案件')
-        case_identity['案件名称'] = c1['名称']
-        case_identity['案件链接'] = c1['链接']
-        c2 = case_identity.pop('案件身份')
+        c1 = case_identity.pop('裁判文书标题').replace(' ', '')
+        case_identity['案件名称'] = c1.split('|')[0]
+        case_identity['案件链接'] = c1.split('|')[1]
+        _ = case_identity.pop('案件身份')
+        _ = _.split('|')
+        c2 = {'内容': _[0], '链接': _[1].split(' ')}
         cnt = c2['内容'].replace('-\n', '-').split('\n')
         cnt = [c.split('-') for c in cnt]
         inv = []
         for i in range(len(c2['链接'])):
             c = cnt[i]
-            c.append(c2['链接'][i]['链接'])
+            c.append(c2['链接'][i])
             if len(c) == 3:
-                inv.append(c)
+                inv.append([str(_).strip().replace(' ', '').replace('\n', '') for _ in c])
             else:
                 warnings.warn('裁决文书：异常的案件身份({})'.format('-'.join(c)))
         case_identity['涉案对象'] = inv

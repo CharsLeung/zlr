@@ -30,7 +30,7 @@ class ShareHolder(QccRequest):
         '名称': '股东名称'
     }
 
-    primarykey = 'NAME'
+    primarykey = 'URL'
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
@@ -38,6 +38,7 @@ class ShareHolder(QccRequest):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
             for k, v in zip(kwargs.keys(), kwargs.values()):
+                v = v.replace(' ', '').replace('\n', '').replace('\r', '')
                 if k in cad.keys():
                     self.BaseAttributes[cad[k]] = v
                 elif k in sks:

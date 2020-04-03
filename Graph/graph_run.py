@@ -12,11 +12,14 @@ from Graph.justice_graph import JusGraph
 
 
 eg = EtpGraph()
-# eg.create_all_nodes()
+eg.create_all_nodes()
 eg.create_all_relationship()
 if len(eg.logs):
-    eg.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
+    [print(lg) for lg in eg.logs]
+    # eg.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
 
-# jg = JusGraph()
+jg = JusGraph()
 # jg.create_all_nodes()
-# jg.create_all_relationship()
+jg.create_all_relationship()
+if len(jg.logs):
+    [print(lg) for lg in jg.logs]

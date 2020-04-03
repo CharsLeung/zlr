@@ -47,7 +47,7 @@ class Enterprise(QccRequest):
         ['参保人数', 'NUMBER_OF_PARTICIPANTS'],
         ['营业期限', 'OPERATING_PERIOD'],
         ['人员规模', 'STAFF_SIZE'],
-        ['企业地址', 'ENTERPRISE_ADDRESS'],
+        # ['企业地址', 'ENTERPRISE_ADDRESS'],
         ['经营范围', 'BUSINESS_SCOPE'],
     ]
 
@@ -55,7 +55,7 @@ class Enterprise(QccRequest):
         '企业地址': '地址'
     }
 
-    primarykey = 'NAME'
+    primarykey = 'URL'
 
     def __init__(self, ReturnString=None):
         QccRequest.__init__(self, ReturnString)
@@ -66,6 +66,7 @@ class Enterprise(QccRequest):
                 raise TypeError('')
             self.BaseAttributes['URL'] = self.parser_url(self.url)
             self.BaseAttributes['NAME'] = self.name.strip()
+            self.BaseAttributes['UPDATE_DATE'] = self.update_date
             self._certifications()
             self._business()
             # if
@@ -87,6 +88,7 @@ class Enterprise(QccRequest):
                 return
             ctf = ctf[0]
         for k, v in zip(ctf.keys(), ctf.values()):
+            v = v.replace(' ', '').replace('\n', '').replace('\r', '')
             _ = self.get_englishAttribute_by_chinese(k)
             if _ is not None:
                 self.BaseAttributes[_] = v
@@ -99,6 +101,7 @@ class Enterprise(QccRequest):
         bs = self.content['工商信息']
 
         for k, v in zip(bs.keys(), bs.values()):
+            v = v.replace(' ', '').replace('\n', '').replace('\r', '')
             _ = self.get_englishAttribute_by_chinese(k)
             if _ is not None:
                 self.BaseAttributes[_] = v
@@ -111,22 +114,6 @@ class Enterprise(QccRequest):
         #
         # )
         pass
-
-    def get_neo_node(self, primarylabel=None, primarykey=None):
-        n = NeoNode(
-            self.label,
-            # URL=self.url,
-            # NAME=self.name,
-            UPDATE_DATE=self.update_date,
-            **self.BaseAttributes
-        )
-        if primarylabel is not None:
-            n.__primarylabel__ = primarylabel
-        else:
-            n.__primarylabel__ = self.label
-        if primarykey is not None:
-            n.__primarykey__ = primarykey
-        return n
 
     def get_legal_representative(self):
         lr = self.content['工商信息']['法定代表人']
@@ -190,8 +177,8 @@ class Enterprise(QccRequest):
                     if _ in k:
                         _ = k
                         break
-                _ = i.pop(_)
-                p = {'名称': _[0].split(' ')[0], '链接': _[1]}
+                _ = i.pop(_).split('|')
+                p = {'名称': _[0].split(' ')[0], '链接': _[1].split(' ')[0]}
                 return {'share_holder': ShareHolder(**dict(i, **p))}
 
             if isinstance(shs, list):

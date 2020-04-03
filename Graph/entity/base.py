@@ -13,7 +13,6 @@ from Graph.entity import NeoNode
 
 
 class QccRequest(object):
-
     primarykey = None
 
     ATTRIBUTES = []
@@ -75,7 +74,14 @@ class QccRequest(object):
             else:
                 n.__primarylabel__ = self.label
             if primarykey is not None:
-                n.__primarykey__ = primarykey
+                try:
+                    if self.BaseAttributes[primarykey] is None:
+                        raise ValueError()
+                except Exception as e:
+                    raise ValueError('base attribute of primarykey must'
+                                     'exist and no-None.{}'.format(e))
+                else:
+                    n.__primarykey__ = primarykey
             return n
         else:
             return None
@@ -93,5 +99,3 @@ class QccRequest(object):
         except Exception as e:
             print(e)
             return None
-
-

@@ -24,7 +24,7 @@ class EtpGraph(BaseGraph):
 
     def __init__(self):
         BaseGraph.__init__(self)
-        self.base = BaseModel(tn='qcc', dbname='sit')
+        self.base = BaseModel(tn='qcc', dbname='ppp', location='server')
         pass
 
     def create_nodes_from_enterprise_baseinfo(self, enterprise_baseinfo):
@@ -100,10 +100,6 @@ class EtpGraph(BaseGraph):
         行业作为一个重要的对象单独处理
         :return:
         """
-        # enterprises = self.base.aggregate(pipeline=[
-        #     {'$match': {'metaModel': '基本信息'}},
-        #     # {'$project': {'_id': 1, 'name': 1}}
-        # ])
         enterprises = self.base.query(
             sql={'metaModel': '基本信息'},
             no_cursor_timeout=True)
@@ -166,7 +162,7 @@ class EtpGraph(BaseGraph):
             else:
                 rps.append(LegalRep(lr_n, etp_n).get_relationship())
         except Exception as e:
-            self.to_logs('deal legal representative raise ()'.format(e),
+            self.to_logs('deal legal representative raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         try:
             ms = etp.get_manager()
@@ -180,7 +176,7 @@ class EtpGraph(BaseGraph):
                     else:
                         rps.append(BeInOffice(m_n, etp_n, **m).get_relationship())
         except Exception as e:
-            self.to_logs('deal major managers raise ()'.format(e),
+            self.to_logs('deal major managers raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         # sh = etp.get_share_holder()
         try:
@@ -192,7 +188,7 @@ class EtpGraph(BaseGraph):
             else:
                 rps.append(Located(etp_n, dz_n).get_relationship())
         except Exception as e:
-            self.to_logs('deal address raise ()'.format(e),
+            self.to_logs('deal address raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         try:
@@ -235,7 +231,7 @@ class EtpGraph(BaseGraph):
                         ).get_relationship())
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal share holder raise ()'.format(e),
+            self.to_logs('deal share holder raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         try:
@@ -253,7 +249,7 @@ class EtpGraph(BaseGraph):
             pass
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal telephone number raise ()'.format(e),
+            self.to_logs('deal telephone number raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         try:
@@ -271,7 +267,7 @@ class EtpGraph(BaseGraph):
             pass
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal email raise ()'.format(e),
+            self.to_logs('deal email raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         return rps
 
@@ -284,10 +280,6 @@ class EtpGraph(BaseGraph):
         4.person|enterprise-[holding]->enterprise
         :return:
         """
-        # enterprises = self.base.aggregate(pipeline=[
-        #     {'$match': {'metaModel': '基本信息'}},
-        #     # {'$project': {'_id': 1, 'name': 1}}
-        # ])
         enterprises = self.base.query(
             sql={
                 'metaModel': '基本信息',

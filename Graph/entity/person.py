@@ -28,7 +28,7 @@ class Person(QccRequest):
         # ''
     }
 
-    primarykey = 'NAME'
+    primarykey = 'URL'
 
     def __init__(self,  NAME=None, SEX=None, EDUCATION=None, URL=None, **kwargs):
         QccRequest.__init__(self)
@@ -41,6 +41,7 @@ class Person(QccRequest):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
             for k, v in zip(kwargs.keys(), kwargs.values()):
+                v = v.replace(' ', '').replace('\n', '').replace('\r', '')
                 if k in cad.keys():
                     self.BaseAttributes[cad[k]] = v
                 elif k in sks:
@@ -53,10 +54,5 @@ class Person(QccRequest):
                 self.BaseAttributes['URL'])
         pass
 
-    # def get_neo_node(self):
-    #     return NeoNode(
-    #         'person',
-    #         **self.BaseAttributes
-    #     )
 
 # Person()

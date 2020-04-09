@@ -43,4 +43,7 @@ class ShareHolder(QccRequest):
                 else:
                     warnings.warn('Undefined key for dict of share holder.')
                     self.BaseAttributes[k] = v
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass

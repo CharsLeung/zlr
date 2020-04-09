@@ -40,8 +40,9 @@ graph = Graph('http://localhost:7474', username='neo4j', password='12345')
 # tx.commit()
 
 # nm = NodeMatcher(graph)
-
-r = graph.run('match (e:Enterprise)-[:HAVE]-(em:Email) where e.NAME="重庆数宜信信用管理有限公司" return em.EMAIL')
+# _ = nm.match().where(
+#     '_.NAME="{}"'.format('张平')).first()
+# r = graph.run('match (e:Enterprise)-[:HAVE]-(em:Email) where e.NAME="重庆数宜信信用管理有限公司" return em.EMAIL')
 # 1.
-
+idx = graph.schema.get_indexes('Enterprise')
 pass

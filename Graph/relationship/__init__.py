@@ -13,3 +13,7 @@ from Graph.relationship.located import Located
 from Graph.relationship.legal_representative import LegalRep
 from Graph.relationship.share_holding import ShareHolding
 from Graph.relationship.justice.involve_case import InvolveCase
+from Graph.relationship.take_part_in import TakePartIn
+from Graph.relationship.sell import Sell
+from Graph.relationship.purchase import Purchase
+from Graph.relationship.guaranty import Guaranty

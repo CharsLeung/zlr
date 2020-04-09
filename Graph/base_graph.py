@@ -54,18 +54,19 @@ class BaseGraph:
                 tx.merge(Subgraph(nodes=nodes))
                 tx.commit()
         except Exception as e:
-            self.to_logs('commit subgraph to database raise ()'.format(e),
+            self.to_logs('commit subgraph to database raise ({})'.format(e),
                          'EXCEPTION')
             l = len(nodes)
             if l < toleration:
                 return
-            bk = l // 10
-            for i in range(0, bk):
+            bk = l // 10 + 1    # 每块的数量
+            for i in range(0, 11):
                 nds = nodes[i * bk:(i + 1) * bk]
                 try:
-                    tx = self.graph.begin()
-                    tx.merge(Subgraph(nodes=nds))
-                    tx.commit()
+                    if len(nds):
+                        tx = self.graph.begin()
+                        tx.merge(Subgraph(nodes=nds))
+                        tx.commit()
                 except Exception as e:
                     self.to_logs('commit subgraph to database raise ({}) on '
                                  '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
@@ -93,15 +94,50 @@ class BaseGraph:
             l = len(relationships)
             if l < toleration:
                 return
-            bk = l // 10
-            for i in range(0, bk):
+            bk = l // 10 + 1    # 每块的数量
+            for i in range(0, 11):
                 rps = relationships[i * bk:(i + 1) * bk]
                 try:
-                    tx = self.graph.begin()
-                    tx.merge(Subgraph(relationships=rps))
-                    tx.commit()
+                    if len(rps):
+                        tx = self.graph.begin()
+                        tx.merge(Subgraph(relationships=rps))
+                        tx.commit()
                 except Exception as e:
                     self.to_logs('commit subgraph to database raise ({}) on '
                                  '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
                                  'EXCEPTION')
                     self.graph_merge_nodes(rps, toleration)
+
+    def add_index_and_constraint(self, index=None, constraint=None):
+        """
+        为涉及到的实体创建唯一性约束跟索引，唯一键自动带有索引
+        不比再单独创建索引
+        :return:
+        """
+        labels = list(self.graph.schema.node_labels)
+        if constraint is not None:
+            for l, cst in zip(constraint.keys(), constraint.values()):
+                if l in labels:
+                    cst0 = self.graph.schema.get_uniqueness_constraints(l)
+                    for c in cst:
+                        if c not in cst0:
+                            self.graph.schema.create_uniqueness_constraint(l, c)
+                            print('success to create constraint for '
+                                  '{}({})'.format(l, c))
+                else:
+                    print('failed create constraint for label(){}, '
+                          'this label not in db.')
+            pass
+        if index is not None:
+            for l, idx in zip(index.keys(), index.values()):
+                if l in labels:
+                    idx0 = self.graph.schema.get_indexes(l)
+                    for i in idx:
+                        for i0 in idx0:
+                            if i != i0:
+                                self.graph.schema.create_index(l, *i)
+                                print('success to create index for '
+                                      '{}({})'.format(l, ','.join(i)))
+                else:
+                    print('failed create index for label(){}, '
+                          'this label not in db.')

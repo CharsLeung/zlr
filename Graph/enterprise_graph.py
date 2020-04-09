@@ -8,7 +8,6 @@ datetime = '2020/3/24 0024 下午 14:25'
 from = 'office desktop' 
 """
 import datetime as dt
-from py2neo import Subgraph
 from Graph import BaseGraph
 from Calf.data import BaseModel
 from Graph.exception import ExceptionInfo, SuccessMessage
@@ -25,6 +24,27 @@ class EtpGraph(BaseGraph):
     def __init__(self):
         BaseGraph.__init__(self)
         self.base = BaseModel(tn='qcc_cq_new')
+        pass
+
+    def create_index_and_constraint(self):
+        """
+        为涉及到的实体创建唯一性约束跟索引，唯一键自动带有索引
+        不比再单独创建索引
+        :return:
+        """
+        # TODO(leung): 要随时确保label的准确性
+        constraint = {
+            'Enterprise': ['URL'],
+            'Person': ['URL'],
+            'ShareHolder': ['URL'],
+            'Telephone': ['TELEPHONE'],
+            'Address': ['ADDRESS'],
+            'Email': ['EMAIL'],
+        }
+        index = {
+            'Enterprise': [('NAME',)]
+        }
+        self.add_index_and_constraint(index, constraint)
         pass
 
     def create_nodes_from_enterprise_baseinfo(self, enterprise_baseinfo):
@@ -57,7 +77,7 @@ class EtpGraph(BaseGraph):
             else:
                 nodes.append(lr_n)
         except Exception as e:
-            self.to_logs('deal legal representative raise ()'.format(e),
+            self.to_logs('deal legal representative raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         try:
             ms = etp.get_manager()
@@ -72,7 +92,7 @@ class EtpGraph(BaseGraph):
                     else:
                         nodes.append(m_n)
         except Exception as e:
-            self.to_logs('deal major managers raise ()'.format(e),
+            self.to_logs('deal major managers raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         # sh = etp.get_share_holder()
         try:
@@ -84,7 +104,7 @@ class EtpGraph(BaseGraph):
             else:
                 nodes.append(dz_n)
         except Exception as e:
-            self.to_logs('deal address raise ()'.format(e),
+            self.to_logs('deal address raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         return nodes
@@ -100,12 +120,13 @@ class EtpGraph(BaseGraph):
         行业作为一个重要的对象单独处理
         :return:
         """
-        # enterprises = self.base.aggregate(pipeline=[
-        #     {'$match': {'metaModel': '基本信息'}},
-        #     # {'$project': {'_id': 1, 'name': 1}}
-        # ])
+        # import pandas as pd
+        # ns = pd.read_csv('D:\graph_data\graph_run_logs_for_enterprise.csv')
         enterprises = self.base.query(
-            sql={'metaModel': '基本信息'},
+            sql={
+                'metaModel': '基本信息',
+                # 'name': {'$in': ns['name'].tolist()}
+            },
             no_cursor_timeout=True)
         i, j = 0, 0
         etp_count = enterprises.count()
@@ -119,15 +140,25 @@ class EtpGraph(BaseGraph):
             if len(nodes) > 1000:
                 i += 1
                 self.graph_merge_nodes(nodes)
-                # tx = self.graph.begin()
-                # tx.merge(Subgraph(nodes))
-                # tx.commit()
+                if i == 1:
+                    # 第一轮创建索引
+                    self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge nodes to database '
                                      'round {} and deal {}/{} enterprise,and'
                                      ' merge {} nodes.'.format(
                     dt.datetime.now(), i, j, etp_count, len(nodes)
                 )))
                 nodes.clear()
+        if len(nodes):
+            i += 1
+            self.graph_merge_nodes(nodes)
+            print(SuccessMessage('{}:success merge nodes to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} nodes.'.format(
+                dt.datetime.now(), i, j, etp_count, len(nodes)
+            )))
+            nodes.clear()
+        pass
 
     def create_relationship_from_enterprise_baseinfo(self, enterprise_baseinfo):
         """
@@ -234,8 +265,9 @@ class EtpGraph(BaseGraph):
         try:
             tel = etp.get_telephone_number()
             if tel is None:
-                self.to_logs('there is not valid telephone for'
-                             ' this enterprise.', 'ERROR', eb['name'])
+                # self.to_logs('there is not valid telephone for'
+                #              ' this enterprise.', 'ERROR', eb['name'])
+                pass
             else:
                 tel_n = tel.get_neo_node(primarykey=tel.primarykey)
                 if tel_n is None:
@@ -252,8 +284,9 @@ class EtpGraph(BaseGraph):
         try:
             eml = etp.get_email()
             if eml is None:
-                self.to_logs('there is not valid email for'
-                             ' this enterprise.', 'ERROR', eb['name'])
+                # self.to_logs('there is not valid email for'
+                #              ' this enterprise.', 'ERROR', eb['name'])
+                pass
             else:
                 eml_n = eml.get_neo_node(primarykey=eml.primarykey)
                 if eml_n is None:
@@ -277,10 +310,6 @@ class EtpGraph(BaseGraph):
         4.person|enterprise-[holding]->enterprise
         :return:
         """
-        # enterprises = self.base.aggregate(pipeline=[
-        #     {'$match': {'metaModel': '基本信息'}},
-        #     # {'$project': {'_id': 1, 'name': 1}}
-        # ])
         enterprises = self.base.query(
             sql={'metaModel': '基本信息'},
             no_cursor_timeout=True)
@@ -301,4 +330,14 @@ class EtpGraph(BaseGraph):
                     dt.datetime.now(), i, j, etp_count, len(relationships)
                 )))
                 relationships.clear()
-                # return
+                # if i > 10:
+                #     return
+        if len(relationships):
+            i += 1
+            self.graph_merge_relationships(relationships)
+            print(SuccessMessage('{}:success merge relationships to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} relationships.'.format(
+                dt.datetime.now(), i, j, etp_count, len(relationships)
+            )))
+            relationships.clear()

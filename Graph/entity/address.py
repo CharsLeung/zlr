@@ -29,7 +29,7 @@ class Address(QccRequest):
 
     def __init__(self, address):
         QccRequest.__init__(self)
-        self.BaseAttributes = {'ADDRESS': str(address).strip()}
+        self.BaseAttributes = {'ADDRESS': str(address).replace(' ', '')}
         self.__split_levels__()
         pass
 
@@ -39,12 +39,13 @@ class Address(QccRequest):
         :return:
         """
         # cpca 还带有绘图功能
-        _ = cpca.transform([self.BaseAttributes['ADDRESS']])
-        _ = _.to_dict(orient='index')[0]
-        self.BaseAttributes['PROVINCE'] = _['省']
-        self.BaseAttributes['CITY'] = _['市']
-        self.BaseAttributes['COUNTY'] = _['区']
-        self.BaseAttributes['DETAIL'] = _['地址']
+        if len(self.BaseAttributes['ADDRESS']):
+            _ = cpca.transform([self.BaseAttributes['ADDRESS']])
+            _ = _.to_dict(orient='index')[0]
+            self.BaseAttributes['PROVINCE'] = _['省']
+            self.BaseAttributes['CITY'] = _['市']
+            self.BaseAttributes['COUNTY'] = _['区']
+            self.BaseAttributes['DETAIL'] = _['地址']
         pass
 
 

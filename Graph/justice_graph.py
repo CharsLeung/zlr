@@ -11,7 +11,7 @@ import datetime as dt
 from Graph import BaseGraph
 from Calf.data import BaseModel
 from Graph.entity import JusticeCase, Ruling, Involveder
-from Graph.entity import Enterprise, Person
+from Graph.entity import Enterprise, Person, ExecutedPerson
 from Graph.exception import SuccessMessage
 from Graph.relationship import InvolveCase
 from Graph.enterprise_graph import EtpGraph
@@ -22,6 +22,27 @@ class JusGraph(BaseGraph):
     def __init__(self):
         BaseGraph.__init__(self)
         self.base = BaseModel(tn='qcc_cq_new')
+        pass
+
+    def create_index_and_constraint(self):
+        """
+        为涉及到的实体创建唯一性约束跟索引，唯一键自动带有索引
+        不比再单独创建索引
+        :return:
+        """
+        # TODO(leung): 要随时确保label的准确性
+        constraint = {
+            'JusticeCase': ['CASE_NUM'],
+            'Ruling': ['CASE_NUM'],
+            'Involveder': ['HASH_ID'],
+            'ExecutedPerson': ['CASE_NUM'],
+            # 'Address': ['ADDRESS'],
+            # 'Email': ['EMAIL'],
+        }
+        index = {
+            # 'Enterprise': [('NAME',)]
+        }
+        self.add_index_and_constraint(index, constraint)
         pass
 
     def create_nodes_from_justice_case(self, justice_case):
@@ -64,6 +85,25 @@ class JusGraph(BaseGraph):
                     nodes.append(jc_n)
         return nodes
 
+    def create_nodes_from_executed(self, eps):
+        """
+        创建法律诉讼相关的实体对象，这些对象可以直接在
+        数据库中“法律诉讼”一栏中获取
+        1.失信被执行人
+        :param eps:
+        :return:
+        """
+        nodes = []
+        if len(eps):
+            for jc in eps:
+                jc_n = jc.get_neo_node(primarykey=jc.primarykey)
+                if jc_n is None:
+                    self.to_logs('filed initialize executed prs Neo node',
+                                 'ERROR')
+                else:
+                    nodes.append(jc_n)
+        return nodes
+
     def create_all_nodes(self):
         """
         创建法律诉讼相关的实体对象，这些对象可以直接在
@@ -72,10 +112,6 @@ class JusGraph(BaseGraph):
         2.某个司法案件涉及的公司没在数据中，那么应该创建这个公司
         :return:
         """
-        # justices = self.base.aggregate(pipeline=[
-        #     {'$match': {'metaModel': '法律诉讼'}},
-        #     # {'$project': {'_id': 1, 'name': 1}}
-        # ])
         justices = self.base.query(
             sql={'metaModel': '法律诉讼'},
             no_cursor_timeout=True)
@@ -122,15 +158,21 @@ class JusGraph(BaseGraph):
             if len(nodes) > 1000:
                 i += 1
                 self.graph_merge_nodes(nodes)
-                # tx = self.graph.begin()
-                # tx.merge(Subgraph(nodes))
-                # tx.commit()
                 print(SuccessMessage('{}:success merge nodes to database '
                                      'round {} and deal {}/{} enterprise,and'
                                      ' merge {} nodes.'.format(
                     dt.datetime.now(), i, k, etp_count, len(nodes)
                 )))
                 nodes.clear()
+        if len(nodes):
+            i += 1
+            self.graph_merge_nodes(nodes)
+            print(SuccessMessage('{}:success merge nodes to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} nodes.'.format(
+                dt.datetime.now(), i, k, etp_count, len(nodes)
+            )))
+            nodes.clear()
             pass
 
     def create_relationship_from_justice_case(self, suspect, justice_case, **kwargs):
@@ -159,10 +201,6 @@ class JusGraph(BaseGraph):
         1.enterprise or person -[involve_case]->case
         :return:
         """
-        # justices = self.base.aggregate(pipeline=[
-        #     {'$match': {'metaModel': '法律诉讼'}},
-        #     # {'$project': {'_id': 1, 'name': 1}}
-        # ])
         justices = self.base.query(
             sql={'metaModel': '法律诉讼'},
             no_cursor_timeout=True)
@@ -200,11 +238,11 @@ class JusGraph(BaseGraph):
                     pass
 
             if '司法案件' in j['content'].keys():
-                # justice_case_info = j['content']['司法案件']
-                # jcs = JusticeCase.create_from_dict(justice_case_info)
-                # rps = self.create_relationship_from_justice_case(
-                #     etp_n, jcs)
-                # relationships += rps
+                justice_case_info = j['content']['司法案件']
+                jcs = JusticeCase.create_from_dict(justice_case_info)
+                rps = self.create_relationship_from_justice_case(
+                    etp_n, jcs)
+                relationships += rps
                 pass
             if '裁决文书' in j['content'].keys():
                 ruling_info = j['content']['裁决文书']
@@ -261,18 +299,39 @@ class JusGraph(BaseGraph):
                             ).get_relationship()
                         )
                 pass
+            if '失信被执行人' in j['content'].keys():
+                # TODO(leung):当前数据中失信被执行人信息异常
+                ep_info = j['content']['失信被执行人']
+                eps = ExecutedPerson.create_from_dict(ep_info)
+                eps_n = self.create_nodes_from_executed(eps)
+                for ep_n in eps_n:
+                    relationships.append(
+                        InvolveCase(etp_n, ep_n).get_relationship()
+                    )
+                pass
 
             if len(relationships) > 1000:
                 i += 1
                 self.graph_merge_relationships(relationships)
+                if i == 1:
+                    # 第一轮创建索引
+                    self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge relationships to database '
                                      'round {} and deal {}/{} enterprise,and'
                                      ' merge {} relationships.'.format(
                     dt.datetime.now(), i, k, etp_count, len(relationships)
                 )))
                 relationships.clear()
+        if len(relationships):
+            i += 1
+            self.graph_merge_relationships(relationships)
+            print(SuccessMessage('{}:success merge relationships to database '
+                                 'round {} and deal {}/{} enterprise,and'
+                                 ' merge {} relationships.'.format(
+                dt.datetime.now(), i, k, etp_count, len(relationships)
+            )))
+            relationships.clear()
         pass
-
 
 # jg = JusGraph()
 # jg.create_all_nodes()

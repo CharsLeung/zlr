@@ -48,6 +48,9 @@ class Person(QccRequest):
                 else:
                     warnings.warn('Undefined key for dict of person.')
                     self.BaseAttributes[k] = v
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass
 
     # def get_neo_node(self):

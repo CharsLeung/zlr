@@ -29,10 +29,11 @@ class Possession(QccRequest):
 
     synonyms = {
         '企业': '标的名称',
-        '链接': '标的链接'
+        '链接': '标的链接',
+        '名称': '标的名称'
     }
 
-    primarykey = 'HASH_ID'
+    primarykey = 'URL'
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
@@ -46,5 +47,9 @@ class Possession(QccRequest):
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of possession subject.')
-        self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
+                    self.BaseAttributes[k] = v
+        # self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass

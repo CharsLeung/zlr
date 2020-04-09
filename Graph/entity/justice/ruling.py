@@ -8,7 +8,9 @@ datetime = 2020/3/27 0027 下午 15:34
 from = office desktop
 """
 import warnings
+
 from Graph.entity import QccRequest
+from Graph.data.utils import get_keys
 
 
 class Ruling(QccRequest):
@@ -18,7 +20,7 @@ class Ruling(QccRequest):
 
     ATTRIBUTES = [
         ['案件名称', 'CASE_NAME'],
-        ['案件链接', 'CASE_URL'],
+        ['案件链接', 'URL'],
         ['案件身份', 'CASE_IDENTITY'],  # 这一属性应体现到关系属性当中去
         ['案由', 'CASE_ORIGIN'],
         ['案号', 'CASE_NUM'],
@@ -26,6 +28,10 @@ class Ruling(QccRequest):
         ['案件金额', 'CASE_AMOUNT'],
         ['发布日期', 'RELEASE_DATE']
     ]
+
+    synonyms = {
+        '案号名称': '案号'
+    }
 
     primarykey = 'CASE_NUM'
 
@@ -45,6 +51,9 @@ class Ruling(QccRequest):
             self.CASE_IDENTITY = self.BaseAttributes.pop('CASE_IDENTITY')
         else:
             self.CASE_IDENTITY = None
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass
 
     @classmethod
@@ -87,7 +96,7 @@ class Ruling(QccRequest):
         inv = []
         for i in range(len(c2['链接'])):
             c = cnt[i]
-            c.append(c2['链接'][i]['链接'])
+            c.append(QccRequest.parser_url(c2['链接'][i]['链接']))
             if len(c) == 3:
                 inv.append(c)
             else:
@@ -95,4 +104,76 @@ class Ruling(QccRequest):
         case_identity['涉案对象'] = inv
         return case_identity
 
+    @classmethod
+    def create_from_original_text(cls, text):
+        pass
 
+
+class RulingText(QccRequest):
+
+    ATTRIBUTES = [
+        ['标题', 'TITLE'],
+        ['链接', 'URL'],
+        ['原文链接', 'ORIGINAL_URL'],
+        ['发布日期', 'RELEASE_DATE'],
+        ['案由', 'CASE_ORIGIN'],
+        ['案号', 'CASE_NUM'],
+        ['执行法院', 'COURT'],
+
+    ]
+
+    synonyms = {
+        '发表时间': '发布日期',
+        '法院': '执行法院',
+        '类型': '案由',
+    }
+
+    primarykey = 'CASE_NUM'
+
+    def __init__(self, **kwargs):
+        QccRequest.__init__(self)
+        if len(kwargs):
+            sks = self.synonyms.keys()
+            cad = self.chineseAttributeDict()
+            for k, v in zip(kwargs.keys(), kwargs.values()):
+                if k in cad.keys():
+                    self.BaseAttributes[cad[k]] = v
+                elif k in sks:
+                    self.BaseAttributes[cad[self.synonyms[k]]] = v
+                else:
+                    # warnings.warn('Undefined key for dict of ruling text.')
+                    self.BaseAttributes[k] = v
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
+        pass
+
+    @classmethod
+    def create_from_original_text(cls, text, **kwargs):
+        """
+        裁决文书的详细页，比在法律诉讼页面得到的裁决文书纲要
+        内容更丰富
+        :param text:
+        :param kwargs:
+        :return:
+        """
+        r = {}
+        if isinstance(text, dict):
+            _ = text.pop('详情信息')
+            r['标题'] = _['标题']
+            r['来源文字'] = _['来源']['文字']
+            r['来源链接'] = _['来源']['链接']
+            r['发表时间'] = text.pop('发表时间')
+            tx = text.pop('文书正文')
+            r['法院'] = tx.pop('法院')
+            r['类型'] = tx.pop('类型')
+            r['案号'] = tx.pop('案号')
+            for k, v in zip(tx.keys(), tx.values()):
+                if isinstance(v, dict):
+                    if '内容' in v.keys():
+                        r[k] = v['内容']
+                else:
+                    r[k] = v
+        r = dict(r, **kwargs)
+        return RulingText(**r)
+        pass

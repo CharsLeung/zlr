@@ -9,14 +9,73 @@ from = office desktop
 """
 from Graph.enterprise_graph import EtpGraph
 from Graph.justice_graph import JusGraph
+from Graph.justice_rulingtext_graph import JusRulingTextGraph
+from Graph.operating_risk_graph import OptRiskGraph
+from Graph.operating_graph import OptGraph
+from Graph.news_graph import NewsGraph
 
 
-eg = EtpGraph()
-# eg.create_all_nodes()
-eg.create_all_relationship()
-if len(eg.logs):
-    eg.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
+def f1():
+    eg = EtpGraph()
+    # eg.create_index_and_constraint()
+    # eg.create_all_nodes()
+    eg.create_all_relationship()
+    if len(eg.logs):
+        eg.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
+    pass
 
-# jg = JusGraph()
-# jg.create_all_nodes()
-# jg.create_all_relationship()
+
+f1()
+
+
+def f2():
+    jg = JusGraph()
+    # jg.create_all_nodes()
+    jg.create_all_relationship()
+    if len(jg.logs):
+        jg.save_logs('D:\graph_data\graph_run_logs_for_justice.csv')
+    pass
+
+
+# f2()
+
+
+def f3():
+    jtg = JusRulingTextGraph()
+    jtg.create_all_relationship()
+    if len(jtg.logs):
+        jtg.save_logs('D:\graph_data\graph_run_logs_for_justice_text.csv')
+    pass
+
+
+# f3()
+
+
+def f4():
+    org = OptRiskGraph()
+    org.create_all_relationship()
+    if len(org.logs):
+        org.save_logs('D:\graph_data\graph_run_logs_for_org.csv')
+    pass
+
+
+# f4()
+
+
+def f5():
+    og = OptGraph()
+    og.create_all_relationship()
+    if len(og.logs):
+        og.save_logs('D:\graph_data\graph_run_logs_for_og.csv')
+    pass
+
+
+# f5()
+
+
+def f6():
+    ng = NewsGraph()
+    ng.create_all_relationship()
+    if len(ng.logs):
+        ng.save_logs('D:\graph_data\graph_run_logs_for_og.csv')
+    pass

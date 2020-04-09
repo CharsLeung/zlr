@@ -7,7 +7,26 @@ author = 'Administrator'
 datetime = '2020/3/25 0025 上午 11:09'
 from = 'office desktop' 
 """
+import json
 import pandas as pd
+
+
+def read_json(path):
+    try:
+        with open(path, encoding='utf-8') as file:
+            # ds = file.readlines()
+            # # ds = json.load(ds)
+            # ds = [json.load(d) for d in ds]
+            # content = json.load(file)
+            result=[]
+            for line in file:
+                result.append(json.loads(line))
+            ds = result
+        return ds
+    except Exception as e:
+        # ExceptionInfo(e)
+        print(e)
+        return []
 
 
 def get_keys(_, root='', sep='-', return_value=False, filter_key=[], keep_key=[]):
@@ -26,7 +45,7 @@ def get_keys(_, root='', sep='-', return_value=False, filter_key=[], keep_key=[]
         pass
     else:
         return []
-    keep = True if len(keep_key) else False
+    # keep = True if len(keep_key) else False
     for k, v in zip(_.keys(), _.values()):
         if k in filter_key:
             continue

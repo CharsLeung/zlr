@@ -19,10 +19,11 @@ from Graph.entity import QccRequest, Person, Address, \
 
 
 class Enterprise(QccRequest):
-    entity_category_index = 1
+    # entity_category_index = 1
 
     # 属性对照表
     ATTRIBUTES = [
+        ['名称', 'NAME'],
         ['电话', 'TELEPHONE'],
         ['官网', 'WEBSITE'],
         ['邮箱', 'EMAIL'],
@@ -59,9 +60,11 @@ class Enterprise(QccRequest):
         else:
             if self.metaModel != '基本信息':
                 raise TypeError('')
-
+            self.BaseAttributes['URL'] = self.parser_url(self.url)
+            self.BaseAttributes['NAME'] = self.name.strip()
             self._certifications()
             self._business()
+            # if
         pass
 
     def _certifications(self):
@@ -70,8 +73,6 @@ class Enterprise(QccRequest):
         :return:
         """
         ctf = self.content['认证信息']
-        # ctf_keys = ctf.keys()
-        # ks = ['电话', '官网', '邮箱', '地址', '简介']
         for k, v in zip(ctf.keys(), ctf.values()):
             _ = self.get_englishAttribute_by_chinese(k)
             if _ is not None:
@@ -101,8 +102,8 @@ class Enterprise(QccRequest):
     def get_neo_node(self, primarylabel=None, primarykey=None):
         n = NeoNode(
             self.label,
-            URL=self.url,
-            NAME=self.name,
+            # URL=self.url,
+            # NAME=self.name,
             UPDATE_DATE=self.update_date,
             **self.BaseAttributes
         )
@@ -132,20 +133,30 @@ class Enterprise(QccRequest):
         mgs = []
         if '主要人员' in self.content.keys():
             ms = self.content['主要人员']  # 可能分为工商登记、上市公示两类
+
+            def f(c):
+                prs = []
+                if '上市公示' in c.keys():
+                    for item in c['上市公示']:
+                        prs.append(dict(
+                                person=Person(**item.pop('人员')),
+                                category='上市公示', **item)
+                        )
+                else:
+                    prs.append(dict(
+                        person=Person(**c.pop('人员')),
+                        category='工商登记', **c)
+                    )
+
+                return prs
+
             if isinstance(ms, dict):
                 for k, v in zip(ms.keys(), ms.values()):
                     for m in v:
-                        mgs.append({
-                            'person': Person(**m['人员']),
-                            'position': m['职务'],
-                            'category': k
-                        })
+                        mgs += f(m)
             elif isinstance(ms, list):
                 for m in ms:
-                    mgs.append({
-                        'person': Person(**m['人员']),
-                        'position': m['职务']
-                    })
+                    mgs += f(m)
             else:
                 warnings.warn('Generally, the type of major managers is '
                               'in (dict, list).')

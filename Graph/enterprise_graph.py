@@ -42,7 +42,8 @@ class EtpGraph(BaseGraph):
             'Email': ['EMAIL'],
         }
         index = {
-            'Enterprise': [('NAME',)]
+            'Enterprise': [('NAME',)],
+            'Person': [('NAME',)]
         }
         self.add_index_and_constraint(index, constraint)
         pass
@@ -140,8 +141,7 @@ class EtpGraph(BaseGraph):
             if len(nodes) > 1000:
                 i += 1
                 self.graph_merge_nodes(nodes)
-                if i == 1:
-                    # 第一轮创建索引
+                if not self.index_and_constraint_statue:
                     self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge nodes to database '
                                      'round {} and deal {}/{} enterprise,and'
@@ -152,6 +152,8 @@ class EtpGraph(BaseGraph):
         if len(nodes):
             i += 1
             self.graph_merge_nodes(nodes)
+            if not self.index_and_constraint_statue:
+                self.create_index_and_constraint()
             print(SuccessMessage('{}:success merge nodes to database '
                                  'round {} and deal {}/{} enterprise,and'
                                  ' merge {} nodes.'.format(
@@ -324,6 +326,8 @@ class EtpGraph(BaseGraph):
             if len(relationships) > 1000:
                 i += 1
                 self.graph_merge_relationships(relationships)
+                if not self.index_and_constraint_statue:
+                    self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge relationships to database '
                                      'round {} and deal {}/{} enterprise,and'
                                      ' merge {} relationships.'.format(
@@ -335,6 +339,8 @@ class EtpGraph(BaseGraph):
         if len(relationships):
             i += 1
             self.graph_merge_relationships(relationships)
+            if not self.index_and_constraint_statue:
+                self.create_index_and_constraint()
             print(SuccessMessage('{}:success merge relationships to database '
                                  'round {} and deal {}/{} enterprise,and'
                                  ' merge {} relationships.'.format(

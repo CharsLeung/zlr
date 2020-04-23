@@ -13,6 +13,9 @@ from Graph.entity import QccRequest
 
 
 class Trademark(QccRequest):
+    """
+    商标
+    """
 
     ATTRIBUTES = [
         ['商标名称', 'NAME'],

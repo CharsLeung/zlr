@@ -13,6 +13,9 @@ from Graph.entity import QccRequest
 
 
 class Patent(QccRequest):
+    """
+    专利
+    """
 
     ATTRIBUTES = [
         ['专利名称', 'NAME'],

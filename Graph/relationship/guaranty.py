@@ -34,9 +34,9 @@ class Guaranty:
             elif a[1] in ks:
                 self.properties[a[1]] = kwargs.pop(a[1])
             else:
-                if hasattr(possession, a[0]):
+                if a[0] in possession.keys():
                     self.properties[a[1]] = possession[a[0]]
-                elif hasattr(possession, a[1]):
+                elif a[1] in possession.keys():
                     self.properties[a[1]] = possession[a[1]]
                 else:
                     pass

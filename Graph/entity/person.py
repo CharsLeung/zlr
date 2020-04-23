@@ -12,6 +12,9 @@ from Graph.entity import QccRequest, NeoNode
 
 
 class Person(QccRequest):
+    """
+    自然人
+    """
 
     # label = Person.__class__._
 

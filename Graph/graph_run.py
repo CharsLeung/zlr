@@ -13,6 +13,7 @@ from Graph.justice_rulingtext_graph import JusRulingTextGraph
 from Graph.operating_risk_graph import OptRiskGraph
 from Graph.operating_graph import OptGraph
 from Graph.news_graph import NewsGraph
+from Graph.develop_graph import DvpGraph
 
 
 def f1():
@@ -25,7 +26,7 @@ def f1():
     pass
 
 
-f1()
+# f1()
 
 
 def f2():
@@ -77,5 +78,19 @@ def f6():
     ng = NewsGraph()
     ng.create_all_relationship()
     if len(ng.logs):
-        ng.save_logs('D:\graph_data\graph_run_logs_for_og.csv')
+        ng.save_logs('D:\graph_data\graph_run_logs_for_news.csv')
     pass
+
+
+# f6()
+
+
+def f7():
+    dg = DvpGraph()
+    dg.create_all_relationship()
+    if len(dg.logs):
+        dg.save_logs('D:\graph_data\graph_run_logs_for_dg.csv')
+    pass
+
+
+f7()

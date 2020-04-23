@@ -7,24 +7,19 @@ author = Administrator
 datetime = 2020/4/2 0002 下午 14:04
 from = office desktop
 """
-from Calf.data import BaseModel
-from Graph.data.utils import read_json
-from Graph.utils import File
+import datetime as dt
 
-# fs = File.get_all_file('D:\graph_data\\temp.json\\')
-fs = ['D:\graph_data\\temp.json']
-bm = BaseModel(tn='qcc_cq_new_1')
-data = []
-count = 0
-for p in fs:
-    try:
-        js = read_json(p)
-        data += js
-        if len(data) > 0:
-            _ = len(data)
-            count += _
-            print('deal:', count)
-            bm.insert_batch(data)
-            data.clear()
-    except Exception as e:
-        print(e)
+from Calf.utils import trading
+
+
+# 交易日计算
+d = dt.datetime.today()     # 基准日期
+days = 1    # offset 负数
+# trading.trade_period(d, days)
+
+d = [
+    [1, 2, 3],
+    [1, 2],
+    [1]
+]
+d.sort(key=lambda x: len(x))

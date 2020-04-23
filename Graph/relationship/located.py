@@ -12,6 +12,10 @@ from py2neo import Relationship
 
 class Located:
 
+    """
+    坐落于、位于
+    """
+
     name = 'LOCATED'
 
     def __init__(self, enterprise, address, **kwargs):

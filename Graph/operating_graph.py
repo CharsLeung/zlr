@@ -209,7 +209,10 @@ class OptGraph(BaseGraph):
         :return:
         """
         ops = self.base.query(
-            sql={'metaModel': '经营状况'},
+            sql={
+                'metaModel': '经营状况',
+                # 'name': '重庆秋之妍园林艺术发展有限公司'
+            },
             no_cursor_timeout=True)
         i, k = 0, 0
         eg = EtpGraph()
@@ -218,12 +221,17 @@ class OptGraph(BaseGraph):
         etp = Enterprise()
         for o in ops:
             k += 1
-            # if k < 43500:
+            # if k < 108990:
             #     continue
-            etp_n = self.NodeMatcher.match(
-                etp.label,
-                NAME=o['name']  # TODO(leung): 这里要注意，基本信息以外的模块中的url确定不了公司
-            ).first()
+            # etp_n = self.NodeMatcher.match(
+            #     etp.label,
+            #     NAME=o['name']  # TODO(leung): 这里要注意，基本信息以外的模块中的url确定不了公司
+            # ).first()
+            etp_n = self.match_node(
+                'Enterprise', 'ShareHolder', 'Involveder',
+                'Invested', 'Client', 'Supplier',
+                cypher='_.NAME = "{}"'.format(o['name'])
+            )
             if etp_n is None:
                 # 如果这个公司还没在数据库里面，那么应该创建这个公司
                 _ = self.base.query_one(
@@ -238,7 +246,7 @@ class OptGraph(BaseGraph):
                     pass
                 else:
                     # 没有这个公司的信息，那就创建一个信息不全的公司
-                    etp = Enterprise(**{'名称': o['name']})
+                    etp = Enterprise({'name': o['name'], 'metaModel': '基本信息'})
                     etp_n = etp.get_neo_node(primarykey=etp.primarykey)
                     pass
 
@@ -263,16 +271,16 @@ class OptGraph(BaseGraph):
             if '招投标信息' in o['content'].keys():
                 # 公示的招投标信息一般都是结果，一般情况下是找不到
                 # 共同投标的单位，除非是共同中标
-                b_info = o['content']['招投标信息']
-                bs = Bidding.create_from_dict(b_info)
-                bs_n = self.create_nodes_from_bidding(bs)
-                for b_n in bs_n:
-                    # TODO(leung):项目分类用作了招投标结果
-                    relationships.append(
-                        TakePartIn(
-                            etp_n, b_n, **{'RESULT': b_n['TYPE']}
-                        ).get_relationship()
-                    )
+                # b_info = o['content']['招投标信息']
+                # bs = Bidding.create_from_dict(b_info)
+                # bs_n = self.create_nodes_from_bidding(bs)
+                # for b_n in bs_n:
+                #     # TODO(leung):项目分类用作了招投标结果
+                #     relationships.append(
+                #         TakePartIn(
+                #             etp_n, b_n, **{'RESULT': b_n['TYPE']}
+                #         ).get_relationship()
+                #     )
                 pass
             if '抽查检查' in o['content'].keys():
                 c_info = o['content']['抽查检查']
@@ -298,63 +306,63 @@ class OptGraph(BaseGraph):
                     )
                 pass
             if '税务信用' in o['content'].keys():
-                t_info = o['content']['税务信用']
-                ts = TaxCredit.create_from_dict(t_info)
-                ts_n = self.create_nodes_from_tax(ts)
-                for t_n in ts_n:
-                    # TODO(leung):纳税信用等级作为税务信用评级结果
-                    relationships.append(
-                        Have(
-                            etp_n, t_n, **{'RESULT': t_n['GRADE']}
-                        ).get_relationship()
-                    )
+                # t_info = o['content']['税务信用']
+                # ts = TaxCredit.create_from_dict(t_info)
+                # ts_n = self.create_nodes_from_tax(ts)
+                # for t_n in ts_n:
+                #     # TODO(leung):纳税信用等级作为税务信用评级结果
+                #     relationships.append(
+                #         Have(
+                #             etp_n, t_n, **{'RESULT': t_n['GRADE']}
+                #         ).get_relationship()
+                #     )
                 pass
             if '进出口信用' in o['content'].keys():
-                ie_info = o['content']['进出口信用']
-                ies = IAE.create_from_dict(ie_info)
-                ies_n = self.create_nodes_from_iae(ies)
-                for ie_n in ies_n:
-                    relationships.append(
-                        Have(
-                            etp_n, ie_n
-                        ).get_relationship()
-                    )
+                # ie_info = o['content']['进出口信用']
+                # ies = IAE.create_from_dict(ie_info)
+                # ies_n = self.create_nodes_from_iae(ies)
+                # for ie_n in ies_n:
+                #     relationships.append(
+                #         Have(
+                #             etp_n, ie_n
+                #         ).get_relationship()
+                #     )
                 pass
             if '招聘信息' in o['content'].keys():
-                r_info = o['content']['招聘信息']
-                rs = Recruitment.create_from_dict(r_info)
-                rs_n = self.create_nodes_from_recruitment(rs)
-                for r_n in rs_n:
-                    relationships.append(
-                        Have(
-                            etp_n, r_n
-                        ).get_relationship()
-                    )
+                # r_info = o['content']['招聘信息']
+                # rs = Recruitment.create_from_dict(r_info)
+                # rs_n = self.create_nodes_from_recruitment(rs)
+                # TODO(leung):需要将招聘信息体现在关系上
+                # for r_n in rs_n:
+                #     relationships.append(
+                #         Have(
+                #             etp_n, r_n
+                #         ).get_relationship()
+                #     )
                 pass
             if '客户' in o['content'].keys():
-                c_info = o['content']['客户']
-                cs = Client.create_from_dict(c_info)
-                cs_n = self.create_nodes_from_client(cs)
-                for c_n in cs_n:
-                    relationships.append(
-                        Sell(etp_n, c_n).get_relationship()
-                    )
+                # c_info = o['content']['客户']
+                # cs = Client.create_from_dict(c_info)
+                # cs_n = self.create_nodes_from_client(cs)
+                # for c_n in cs_n:
+                #     relationships.append(
+                #         Sell(etp_n, c_n).get_relationship()
+                #     )
                 pass
             if '供应商' in o['content'].keys():
-                s_info = o['content']['供应商']
-                ss = Supplier.create_from_dict(s_info)
-                ss_n = self.create_nodes_from_client(ss)
-                for s_n in ss_n:
-                    relationships.append(
-                        Purchase(etp_n, s_n).get_relationship()
-                    )
+                # s_info = o['content']['供应商']
+                # ss = Supplier.create_from_dict(s_info)
+                # ss_n = self.create_nodes_from_client(ss)
+                # for s_n in ss_n:
+                #     relationships.append(
+                #         Purchase(etp_n, s_n).get_relationship()
+                #     )
                 pass
 
             if len(relationships) > 1000:
                 i += 1
                 self.graph_merge_relationships(relationships)
-                if i == 1:
-                    # 第一轮创建索引
+                if not self.index_and_constraint_statue:
                     self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge relationships to database '
                                      'round {} and deal {}/{} enterprise,and'
@@ -362,10 +370,12 @@ class OptGraph(BaseGraph):
                     dt.datetime.now(), i, k, etp_count, len(relationships)
                 )))
                 relationships.clear()
-                return
+                # return
         if len(relationships):
             i += 1
             self.graph_merge_relationships(relationships)
+            if not self.index_and_constraint_statue:
+                self.create_index_and_constraint()
             print(SuccessMessage('{}:success merge relationships to database '
                                  'round {} and deal {}/{} enterprise,and'
                                  ' merge {} relationships.'.format(
@@ -375,5 +385,5 @@ class OptGraph(BaseGraph):
             pass
 
 
-og = OptGraph()
-og.create_all_relationship()
+# og = OptGraph()
+# og.create_all_relationship()

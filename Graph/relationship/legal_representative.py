@@ -12,6 +12,10 @@ from py2neo import Relationship
 
 class LegalRep:
 
+    """
+    法人代表
+    """
+
     name = 'LEGAL_REPRESENTATIVE'
 
     def __init__(self, person, enterprise, **kwargs):

@@ -12,6 +12,10 @@ from py2neo import Relationship
 
 class ShareHolding:
 
+    """
+    持股、拥有股份
+    """
+
     name = 'SHARE_HOLDING'
 
     ATTRIBUTES = [

@@ -215,10 +215,15 @@ class JusGraph(BaseGraph):
             k += 1
             # if k < 4910:
             #     continue
-            etp_n = self.NodeMatcher.match(
-                etp.label,
-                NAME=j['name']  # TODO(leung): 这里要注意，法律诉讼模块中的url确定不了公司
-            ).first()
+            # etp_n = self.NodeMatcher.match(
+            #     etp.label,
+            #     NAME=j['name']  # TODO(leung): 这里要注意，法律诉讼模块中的url确定不了公司
+            # ).first()
+            etp_n = self.match_node(
+                'Enterprise', 'ShareHolder', 'Involveder',
+                'Invested', 'Client', 'Supplier',
+                cypher='_.NAME = "{}"'.format(j['name'])
+            )
             if etp_n is None:
                 # 如果这个公司还没在数据库里面，那么应该创建这个公司
                 _ = self.base.query_one(
@@ -313,8 +318,7 @@ class JusGraph(BaseGraph):
             if len(relationships) > 1000:
                 i += 1
                 self.graph_merge_relationships(relationships)
-                if i == 1:
-                    # 第一轮创建索引
+                if not self.index_and_constraint_statue:
                     self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge relationships to database '
                                      'round {} and deal {}/{} enterprise,and'
@@ -325,6 +329,8 @@ class JusGraph(BaseGraph):
         if len(relationships):
             i += 1
             self.graph_merge_relationships(relationships)
+            if not self.index_and_constraint_statue:
+                self.create_index_and_constraint()
             print(SuccessMessage('{}:success merge relationships to database '
                                  'round {} and deal {}/{} enterprise,and'
                                  ' merge {} relationships.'.format(
@@ -332,6 +338,7 @@ class JusGraph(BaseGraph):
             )))
             relationships.clear()
         pass
+
 
 # jg = JusGraph()
 # jg.create_all_nodes()

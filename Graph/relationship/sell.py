@@ -34,9 +34,9 @@ class Sell:
             elif a[1] in ks:
                 self.properties[a[1]] = kwargs.pop(a[1])
             else:
-                if hasattr(buy, a[0]):
+                if a[0] in buy.keys():
                     self.properties[a[1]] = buy[a[0]]
-                elif hasattr(buy, a[1]):
+                elif a[1] in buy.keys():
                     self.properties[a[1]] = buy[a[1]]
                 else:
                     pass

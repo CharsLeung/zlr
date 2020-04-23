@@ -64,10 +64,15 @@ class OptRiskGraph(BaseGraph):
             k += 1
             # if k < 43500:
             #     continue
-            etp_n = self.NodeMatcher.match(
-                etp.label,
-                NAME=j['name']  # TODO(leung): 这里要注意，基本信息以外的模块中的url确定不了公司
-            ).first()
+            # etp_n = self.NodeMatcher.match(
+            #     etp.label,
+            #     NAME=j['name']  # TODO(leung): 这里要注意，基本信息以外的模块中的url确定不了公司
+            # ).first()
+            etp_n = self.match_node(
+                'Enterprise', 'ShareHolder', 'Involveder',
+                'Invested', 'Client', 'Supplier',
+                cypher='_.NAME = "{}"'.format(j['name'])
+            )
             if etp_n is None:
                 # 如果这个公司还没在数据库里面，那么应该创建这个公司
                 _ = self.base.query_one(
@@ -130,12 +135,19 @@ class OptRiskGraph(BaseGraph):
                             # 在企业中没找到，就通过url在所有对象中找
                             # 这里最好不要通过名称找了，除公司以外出现
                             # 同名的几率很大
-                            cz_n = self.NodeMatcher.match().where(
-                                '_.URL = "{}"'.format(cz['链接'])
-                            ).first()
+                            # TODO(leung):在所有实体中去找开销很大，需要注意
+                            # cz_n = self.NodeMatcher.match().where(
+                            #     '_.URL = "{}"'.format(cz['链接'])
+                            # ).first()
+                            # 只在这些对象中去找
+                            cz_n = self.match_node(
+                                'Person', 'ShareHolder', 'Involveder',
+                                'Invested', 'Client', 'Supplier',
+                                cypher='_.URL = "{}"'.format(cz['链接'])
+                            )
                             if cz_n is None:
                                 # 创建这个股权出质人
-                                if len(cz['出质人']):
+                                if len(cz['出质人']) > 1:
                                     cz_n = Involveder(**{'名称': cz['出质人'],
                                                          '链接': cz['链接']})
                                     cz_n = cz_n.get_neo_node(primarykey=cz_n.primarykey)
@@ -159,12 +171,19 @@ class OptRiskGraph(BaseGraph):
                             # 在企业中没找到，就通过url在所有对象中找
                             # 这里最好不要通过名称找了，除公司以外出现
                             # 同名的几率很大
-                            zq_n = self.NodeMatcher.match().where(
-                                '_.URL = "{}"'.format(zq['链接'])
-                            ).first()
+                            # TODO(leung):在所有实体中去找开销很大，需要注意
+                            # zq_n = self.NodeMatcher.match().where(
+                            #     '_.URL = "{}"'.format(zq['链接'])
+                            # ).first()
+                            # 只在这些对象中去找
+                            zq_n = self.match_node(
+                                'Person', 'ShareHolder', 'Involveder',
+                                'Invested', 'Client', 'Supplier',
+                                cypher='_.URL = "{}"'.format(zq['链接'])
+                            )
                             if zq_n is None:
                                 # 创建这个股权出质人
-                                if len(zq['质权人']):
+                                if len(zq['质权人']) > 1:
                                     zq_n = Involveder(**{'名称': zq['质权人'],
                                                          '链接': zq['链接']})
                                     zq_n = zq_n.get_neo_node(primarykey=zq_n.primarykey)
@@ -188,9 +207,15 @@ class OptRiskGraph(BaseGraph):
                             # 在企业中没找到，就通过url在所有对象中找
                             # 这里最好不要通过名称找了，除公司以外出现
                             # 同名的几率很大
-                            bd_n = self.NodeMatcher.match().where(
-                                '_.URL = "{}"'.format(bd['链接'])
-                            ).first()
+                            # TODO(leung):在所有实体中去找开销很大，需要注意
+                            # bd_n = self.NodeMatcher.match().where(
+                            #     '_.URL = "{}"'.format(bd['链接'])
+                            # ).first()
+                            bd_n = self.match_node(
+                                'Person', 'ShareHolder', 'Involveder',
+                                'Invested', 'Client', 'Supplier',
+                                cypher='_.URL = "{}"'.format(bd['链接'])
+                            )
                             if bd_n is None:
                                 # 创建这个出质标的
                                 if len(bd['企业']):
@@ -215,8 +240,7 @@ class OptRiskGraph(BaseGraph):
             if len(relationships) > 1000:
                 i += 1
                 self.graph_merge_relationships(relationships)
-                if i == 1:
-                    # 第一轮创建索引
+                if not self.index_and_constraint_statue:
                     self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge relationships to database '
                                      'round {} and deal {}/{} enterprise,and'
@@ -224,11 +248,13 @@ class OptRiskGraph(BaseGraph):
                     dt.datetime.now(), i, k, etp_count, len(relationships)
                 )))
                 relationships.clear()
-                return
+                # return
                 pass
         if len(relationships):
             i += 1
             self.graph_merge_relationships(relationships)
+            if not self.index_and_constraint_statue:
+                self.create_index_and_constraint()
             print(SuccessMessage('{}:success merge relationships to database '
                                  'round {} and deal {}/{} enterprise,and'
                                  ' merge {} relationships.'.format(

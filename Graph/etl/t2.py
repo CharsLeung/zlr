@@ -1,28 +1,33 @@
 # encoding: utf-8
 
 """
-project = 'Spider'
-file_name = 't1'
-author = 'Administrator'
-datetime = '2020-03-18 10:57'
-IDE = PyCharm
+project = zlr(20200403备份)
+file_name = t2
+author = Administrator
+datetime = 2020/4/20 0020 上午 9:45
+from = office desktop
 """
 import pandas as pd
 
 from Calf.data import BaseModel
+from Calf.utils import File
 from Graph import workspace
 from Graph.data.utils import get_keys
 
+metaModel = '基本信息'
+
 
 def f1():
-    bm = BaseModel(tn='qcc_spider_all_4_14', location='server', dbname='prod')
+    bm = BaseModel(tn='qcc_cq_new')
     # enterprises = bm.aggregate(pipeline=[
     #     {'$match': {'metaModel': '基本信息'}},
     #     # {'$project': {'_id': 1, 'name': 1}}
     # ])
+
     enterprises = bm.query(
-        sql={'metaModel': '基本信息'},
-        no_cursor_timeout=True)
+        sql={'metaModel': metaModel},
+        field={'content': 1, '_id': 0},
+        no_cursor_timeout=True, )
 
     ds = []
     data = []
@@ -32,10 +37,7 @@ def f1():
         i += 1
         # if i > 10:
         #     break
-        cs = get_keys(etp, '基本信息', return_value=True,
-                      filter_key=['_id', 'metaModel', 'source', 'url',
-                                  'headers', 'get', 'date', '序号',
-                                  '日期', '链接', '时间'])
+        cs = get_keys(etp, metaModel, return_value=True)
         for c in cs:
             _ = c.split(':')
             if len(keep):
@@ -85,11 +87,12 @@ def f2():
         d['Ranges'] = d['Ranges'].map(lambda x: x.replace('\r', ''))
         d['Ranges'] = d['Ranges'].map(lambda x: x.replace('\n', ''))
         try:
-            d.to_csv('D:\graph_data\基本信息\{}.csv'.format(
-                r['k']), index=False)
+            fp = workspace + '{}\\'.format(metaModel)
+            File.check_file(fp)
+            d.to_csv(fp + '{}.csv'.format(r['k']), index=False)
         except Exception as e:
             print(e)
-            d.to_csv('D:\graph_data\基本信息\error-{}.csv'.format(
+            d.to_csv(fp + 'error-{}.csv'.format(
                 i), index=False)
 
 

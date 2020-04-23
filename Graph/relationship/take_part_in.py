@@ -31,9 +31,9 @@ class TakePartIn:
             elif a[1] in ks:
                 self.properties[a[1]] = kwargs.pop(a[1])
             else:
-                if hasattr(item, a[0]):
+                if a[0] in item.keys():
                     self.properties[a[1]] = item[a[0]]
-                elif hasattr(item, a[1]):
+                elif a[1] in item.keys():
                     self.properties[a[1]] = item[a[1]]
                 else:
                     pass

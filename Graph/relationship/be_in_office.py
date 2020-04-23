@@ -12,6 +12,10 @@ from py2neo import Relationship
 
 class BeInOffice:
 
+    """
+    任职于、就职于
+    """
+
     name = 'BE_IN_OFFICE'
 
     def __init__(self, person, enterprise, **kwargs):

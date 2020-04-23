@@ -13,6 +13,9 @@ from Graph.entity import QccRequest
 
 
 class Email(QccRequest):
+    """
+    邮箱
+    """
 
     ATTRIBUTES = [
         ['邮箱', 'EMAIL']

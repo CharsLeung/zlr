@@ -13,7 +13,10 @@ from Graph.entity import Person, Enterprise
 from Graph.relationship import *
 
 
+# match (e:Enterprise) where e.NAME=~".*数宜信.*" return e
 # MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r
+# MATCH (e:Enterprise)-[r:HAVE]->(c:Check) delete r
+# MATCH (p:Person)-[r]->() where p.URL="https://www.qichacha.com" delete p, r
 # MATCH (n:Person) where size((n)-[:LEGAL_REPRESENTATIVE]->())>2 return n
 # MATCH p=(e1:Enterprise)-[*..20]-(e2:Enterprise) where e1.NAME='重庆市龙井泡沫塑料有限公司' and e2.NAME='重庆玮兰床垫家具有限公司' RETURN p
 
@@ -39,10 +42,10 @@ graph = Graph('http://localhost:7474', username='neo4j', password='12345')
 # tx.merge(Subgraph(relationships=[r1, r2]))
 # tx.commit()
 
-# nm = NodeMatcher(graph)
-# _ = nm.match().where(
-#     '_.NAME="{}"'.format('张平')).first()
+nm = NodeMatcher(graph)
+_ = nm.match('Person').where(
+    '_.NAME="{}"'.format('张平')).first()
 # r = graph.run('match (e:Enterprise)-[:HAVE]-(em:Email) where e.NAME="重庆数宜信信用管理有限公司" return em.EMAIL')
 # 1.
-idx = graph.schema.get_indexes('Enterprise')
+# idx = graph.schema.get_indexes('Enterprise')
 pass

@@ -13,6 +13,9 @@ from Graph.entity import QccRequest
 
 
 class Website(QccRequest):
+    """
+    网站
+    """
 
     ATTRIBUTES = [
         ['名称', 'NAME'],

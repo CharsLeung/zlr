@@ -7,3 +7,4 @@ author = Administrator
 datetime = 2020/4/3 0003 上午 11:39
 from = office desktop
 """
+from Graph.etl.base import QccRequest

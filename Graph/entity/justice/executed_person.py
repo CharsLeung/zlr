@@ -13,6 +13,9 @@ from Graph.entity import QccRequest
 
 
 class ExecutedPerson(QccRequest):
+    """
+    失信被执行人
+    """
     ATTRIBUTES = [
         ['案号', 'CASE_NUM'],
         # ['案号链接', 'URL'],

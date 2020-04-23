@@ -13,6 +13,9 @@ from Graph.entity import QccRequest, NeoNode
 
 
 class ShareHolder(QccRequest):
+    """
+    股东
+    """
 
     ATTRIBUTES = [
         ['股东名称', 'NAME'],

@@ -16,18 +16,21 @@ warnings.filterwarnings('ignore')
 
 
 class Address(QccRequest):
+    """
+    地址
+    """
 
     ATTRIBUTES = [
-        ['ADDRESS', '地址'],
-        ['PROVINCE', '省'],
-        ['CITY', '市'],
-        ['COUNTY', '区'],
-        ['DETAIL', '详细地址']
+        ['地址', 'ADDRESS'],
+        ['省', 'PROVINCE'],
+        ['市', 'CITY'],
+        ['区', 'COUNTY'],
+        ['详细地址', 'DETAIL']
     ]
 
     primarykey = 'ADDRESS'
 
-    def __init__(self, address):
+    def __init__(self, address=''):
         QccRequest.__init__(self)
         self.BaseAttributes = {'ADDRESS': str(address).replace(' ', '')}
         self.__split_levels__()

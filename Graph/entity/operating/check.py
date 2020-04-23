@@ -131,9 +131,9 @@ class RandomCheck(QccRequest):
             return c
 
         if isinstance(content, dict):
-            obj.append(Check(**f(content)))
+            obj.append(RandomCheck(**f(content)))
         elif isinstance(content, list):
-            obj += [Check(**f(c)) for c in content]
+            obj += [RandomCheck(**f(c)) for c in content]
         else:
             warnings.warn('invalid type for random-check content.')
         return obj

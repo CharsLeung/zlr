@@ -13,6 +13,9 @@ from Graph.entity import QccRequest
 
 
 class Telephone(QccRequest):
+    """
+    电话
+    """
 
     ATTRIBUTES = [
         ['电话', 'TELEPHONE']

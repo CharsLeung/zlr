@@ -21,6 +21,7 @@ class BaseGraph:
         self.NodeMatcher = NodeMatcher(self.graph)
         self.RelationshipMatcher = RelationshipMatcher(self.graph)
         self.logs = []
+        self.index_and_constraint_statue = False
         pass
 
     def to_logs(self, info, tp='LOG', name=''):
@@ -36,7 +37,22 @@ class BaseGraph:
         logs.to_csv(path, index=False)
         pass
 
-    # def node_match(self, ):
+    def match_node(self, *labels, cypher=None):
+        """
+        py2neo的match不支持多label的查询，cypher也
+        不支持，但同一条件去查询满足的多个label是经常
+        用到的，找到一个就结束
+        :param cypher:
+        :param labels:
+        :return:
+        """
+        ns = None
+        for label in labels:
+            n = self.NodeMatcher.match(label).where(cypher).first()
+            if n is not None:
+                return n
+        return ns
+        pass
 
     def graph_merge_nodes(self, nodes=None, toleration=10):
         """
@@ -114,6 +130,7 @@ class BaseGraph:
         不比再单独创建索引
         :return:
         """
+        self.index_and_constraint_statue = True
         labels = list(self.graph.schema.node_labels)
         if constraint is not None:
             for l, cst in zip(constraint.keys(), constraint.values()):
@@ -125,8 +142,9 @@ class BaseGraph:
                             print('success to create constraint for '
                                   '{}({})'.format(l, c))
                 else:
-                    print('failed create constraint for label(){}, '
-                          'this label not in db.')
+                    print('failed create constraint for {}, '
+                          'this label not in db.'.format(l))
+                    self.index_and_constraint_statue = False
             pass
         if index is not None:
             for l, idx in zip(index.keys(), index.values()):
@@ -141,3 +159,5 @@ class BaseGraph:
                 else:
                     print('failed create index for label(){}, '
                           'this label not in db.')
+                    self.index_and_constraint_statue = False
+        pass

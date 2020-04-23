@@ -75,8 +75,7 @@ class JusRulingTextGraph(BaseGraph):
             if len(relationships) > 1000:
                 i += 1
                 self.graph_merge_relationships(relationships)
-                if i == 1:
-                    # 第一轮创建索引
+                if not self.index_and_constraint_statue:
                     self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge relationships to database '
                                      'round {} and deal {}/{} enterprise,and'
@@ -87,6 +86,8 @@ class JusRulingTextGraph(BaseGraph):
         if len(relationships):
             i += 1
             self.graph_merge_relationships(relationships)
+            if not self.index_and_constraint_statue:
+                self.create_index_and_constraint()
             print(SuccessMessage('{}:success merge relationships to database '
                                  'round {} and deal {}/{} enterprise,and'
                                  ' merge {} relationships.'.format(

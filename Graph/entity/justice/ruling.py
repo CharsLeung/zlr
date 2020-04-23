@@ -110,6 +110,9 @@ class Ruling(QccRequest):
 
 
 class RulingText(QccRequest):
+    """
+    裁决文书全文
+    """
 
     ATTRIBUTES = [
         ['标题', 'TITLE'],

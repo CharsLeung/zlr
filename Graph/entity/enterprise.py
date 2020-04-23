@@ -19,6 +19,11 @@ from Graph.entity import QccRequest, Person, Address, \
 
 
 class Enterprise(QccRequest):
+
+    """
+    公司
+    """
+
     # entity_category_index = 1
 
     # 属性对照表
@@ -53,7 +58,7 @@ class Enterprise(QccRequest):
 
     primarykey = 'URL'
 
-    def __init__(self, ReturnString=None):
+    def __init__(self, ReturnString=None, **kwargs):
         QccRequest.__init__(self, ReturnString)
         if ReturnString is None:
             pass
@@ -62,9 +67,25 @@ class Enterprise(QccRequest):
                 raise TypeError('')
             self.BaseAttributes['URL'] = self.parser_url(self.url)
             self.BaseAttributes['NAME'] = self.name.strip()
-            self._certifications()
-            self._business()
-            # if
+            self.BaseAttributes['UPDATE_DATE'] = self.update_date
+            if 'content' in ReturnString.keys():
+                self._certifications()
+                self._business()
+                # if
+        if len(kwargs):
+            sks = self.synonyms.keys()
+            cad = self.chineseAttributeDict()
+            for k, v in zip(kwargs.keys(), kwargs.values()):
+                if k in cad.keys():
+                    self.BaseAttributes[cad[k]] = v
+                elif k in sks:
+                    self.BaseAttributes[cad[self.synonyms[k]]] = v
+                else:
+                    warnings.warn('Undefined key for dict of enterprise.')
+                    self.BaseAttributes[k] = v
+            if 'URL' in self.BaseAttributes.keys():
+                self.BaseAttributes['URL'] = self.parser_url(
+                    self.BaseAttributes['URL'])
         pass
 
     def _certifications(self):
@@ -104,7 +125,7 @@ class Enterprise(QccRequest):
             self.label,
             # URL=self.url,
             # NAME=self.name,
-            UPDATE_DATE=self.update_date,
+            # UPDATE_DATE=self.update_date,
             **self.BaseAttributes
         )
         if primarylabel is not None:

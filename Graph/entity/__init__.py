@@ -17,7 +17,6 @@ from Graph.entity.base import QccRequest
 from Graph.entity.address import Address
 from Graph.entity.email import Email
 from Graph.entity.telephone import Telephone
-from Graph.entity.rights.website import Website
 from Graph.entity.person import Person
 from Graph.entity.holder import ShareHolder
 from Graph.entity.justice.case import JusticeCase
@@ -46,4 +45,48 @@ from Graph.entity.operating.supplier import Supplier
 from Graph.entity.operating.tax import TaxCredit
 from Graph.entity.news.news import News
 
+
+def entities(label=None):
+    ets = {
+        'QccRequest': QccRequest(),
+        'Address': Address(),
+        'Email': Email(),
+        'Telephone': Telephone(),
+        'Website': Website(),
+        'Person': Person(),
+        'ShareHolder': ShareHolder(),
+        'JusticeCase': JusticeCase(),
+        'Ruling': Ruling(),
+        'RulingText': RulingText(),
+        'Punishment': Punishment(),
+        'Involveder': Involveder(),
+        'Possession': Possession(),
+        'ExecutedPerson': ExecutedPerson(),
+        'Invested': Invested(),
+        'Enterprise': Enterprise(),
+        'Industry': Industry(),
+        'Certificate': Certificate(),
+        'Patent': Patent(),
+        'Trademark': Trademark(),
+        'App': App(),
+        'WorkCopyRight': WorkCopyRight(),
+        'SoftCopyRight': SoftCopyRight(),
+        'OfficialAccount': OfficialAccount(),
+        'Applets': Applets(),
+        'Weibo': Weibo(),
+        'Bidding': Bidding(),
+        'Check': Check(),
+        'RandomCheck': RandomCheck(),
+        'Client': Client(),
+        'IAE': IAE(),
+        'License': License(),
+        'Recruitment': Recruitment(),
+        'Supplier': Supplier(),
+        'TaxCredit': TaxCredit(),
+        'News': News()
+    }
+    if label is None:
+        return ets
+    else:
+        return ets[label]
 

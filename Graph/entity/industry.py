@@ -13,6 +13,9 @@ from Graph.entity import QccRequest
 
 
 class Industry(QccRequest):
+    """
+    行业
+    """
 
     ATTRIBUTES = [
         ['行业名称', 'NAME']

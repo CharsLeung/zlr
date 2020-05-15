@@ -42,9 +42,12 @@ graph = Graph('http://localhost:7474', username='neo4j', password='12345')
 # tx.merge(Subgraph(relationships=[r1, r2]))
 # tx.commit()
 
+url = 'https://www.qcc.com/firm_e69a6ff5e714ad65d477895bc1df5848.html'
 nm = NodeMatcher(graph)
-_ = nm.match('Person').where(
-    '_.NAME="{}"'.format('张平')).first()
+# _ = nm.match('Enterprise').where(
+#     '_.URL="{}"'.format()
+# ).first()
+_ = graph.run('match (n:Enterprise{URL:"%s"}) return n limit 1' % url).current
 # r = graph.run('match (e:Enterprise)-[:HAVE]-(em:Email) where e.NAME="重庆数宜信信用管理有限公司" return em.EMAIL')
 # 1.
 # idx = graph.schema.get_indexes('Enterprise')

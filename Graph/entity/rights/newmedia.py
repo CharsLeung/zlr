@@ -56,18 +56,18 @@ class OfficialAccount(QccRequest):
         oas = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c['证书']
             # c['证书名称'] = _['名称']
             # c['证书链接'] = _['链接']
-            return c
+            return dict(WeChat=OfficialAccount(**c))
 
         if isinstance(content, dict):
-            oas.append(OfficialAccount(**f(content)))
+            oas.append(f(content))
         elif isinstance(content, list):
-            oas += [OfficialAccount(**f(c)) for c in content]
+            oas += [f(c) for c in content]
         else:
-            warnings.warn('invalid type for work official account content.')
+            warnings.warn('invalid type for WeChat official account content.')
         return oas
 
 
@@ -118,16 +118,16 @@ class Applets(QccRequest):
         oas = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c['证书']
             # c['证书名称'] = _['名称']
             # c['证书链接'] = _['链接']
-            return c
+            return dict(applets=Applets(**c))
 
         if isinstance(content, dict):
-            oas.append(Applets(**f(content)))
+            oas.append(f(content))
         elif isinstance(content, list):
-            oas += [Applets(**f(c)) for c in content]
+            oas += [f(c) for c in content]
         else:
             warnings.warn('invalid type for work applets content.')
         return oas
@@ -139,15 +139,15 @@ class Weibo(QccRequest):
     微博
     """
     ATTRIBUTES = [
-        ['微博昵称', 'NAME'],
-        ['微博链接', 'URL'],
+        ['昵称', 'NAME'],
+        ['链接', 'URL'],
         ['行业类别', 'TYPE'],
         ['简介', 'ABBREVIATION'],
     ]
 
     synonyms = {
-        # '二维码链接': '链接',
-        # '二维码': '链接',
+        '微博昵称': '昵称',
+        '微博链接': '链接',
         # '公众号预估阅读量': '预估阅读量'
     }
 
@@ -179,16 +179,16 @@ class Weibo(QccRequest):
         oas = []
 
         def f(c):
-            del c['序号']
-            _ = c['微博']
-            c['微博昵称'] = _['昵称']
-            c['微博链接'] = _['链接']
-            return c
+            # del c['序号']
+            # _ = c['微博']
+            # c['微博昵称'] = _['昵称']
+            # c['微博链接'] = _['链接']
+            return dict(weibo=Weibo(**c))
 
         if isinstance(content, dict):
-            oas.append(Weibo(**f(content)))
+            oas.append(f(content))
         elif isinstance(content, list):
-            oas += [Weibo(**f(c)) for c in content]
+            oas += [f(c) for c in content]
         else:
             warnings.warn('invalid type for work weibo content.')
         return oas

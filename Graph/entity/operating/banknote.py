@@ -1,33 +1,35 @@
 # encoding: utf-8
 
 """
-project = zlr
-file_name = involveder
+project = zlr(20200403备份)
+file_name = banknote
 author = Administrator
-datetime = 2020/3/30 0030 下午 14:21
+datetime = 2020/5/13 0013 上午 11:23
 from = office desktop
 """
 import warnings
 from Graph.entity import QccRequest
 
 
-class Involveder(QccRequest):
+class Banknote(QccRequest):
 
     """
-    案件参与者
+    票据
     """
+
     ATTRIBUTES = [
-        ['名称', 'NAME'],
-        ['链接', 'URL']
+        ['票面金额(金额)', 'AMOUNT'],
+        ['票面金额(单位)', 'UNIT'],
+        ['票据类型', 'TYPE'],
+        ['票据号', 'NUM'],
     ]
 
-    # 案件参与者不见得有链接，但一定会有一个名称
-    # 但有一个问题，名称很有可能存在重复的，类似
-    # 有很多同名的人,所以，根据基础属性算一个哈希
-    # ID
-    primarykey = 'HASH_ID'
+    synonyms = {
+        # '检查实施机关': '实施机关',
+        # '链接': '标的链接'
+    }
 
-    index = [('NAME',)]
+    primarykey = 'HASH_ID'
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
@@ -40,9 +42,10 @@ class Involveder(QccRequest):
                 elif k in sks:
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
-                    warnings.warn('Undefined key for dict of case involveder.')
+                    warnings.warn('Undefined key for dict of check.')
+                    self.BaseAttributes[k] = v
         self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
-        if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.parser_url(
-                self.BaseAttributes['URL'])
+        # if 'URL' in self.BaseAttributes.keys():
+        #     self.BaseAttributes['URL'] = self.parser_url(
+        #         self.BaseAttributes['URL'])
         pass

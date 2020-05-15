@@ -58,18 +58,19 @@ class Trademark(QccRequest):
         obj = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             _ = c.pop('商标')
             c['商标名称'] = _['名称']
-            c['商标链接'] = _['商标']
+            c['商标链接'] = _['链接']
             _ = c.pop('内容')
+            c['内容详情'] = _['内容']
             c['内容详情'] = _['链接']
-            return c
+            return dict(trademark=Trademark(**c))
 
         if isinstance(content, dict):
-            obj.append(Trademark(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [Trademark(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for trademark content.')
         return obj

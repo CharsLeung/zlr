@@ -61,16 +61,16 @@ class TaxCredit(QccRequest):
         obj = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c.pop('内容')
             # c['专利名称'] = _['名称']
             # c['内容链接'] = _['post链接']
-            return c
+            return dict(TaxCredit=TaxCredit(**c))
 
         if isinstance(content, dict):
-            obj.append(TaxCredit(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [TaxCredit(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for tax-credit content.')
         return obj

@@ -18,7 +18,7 @@ def read_json(path):
             # # ds = json.load(ds)
             # ds = [json.load(d) for d in ds]
             # content = json.load(file)
-            result=[]
+            result = []
             for line in file:
                 result.append(json.loads(line))
             ds = result
@@ -94,9 +94,6 @@ def get_keys(_, root='', sep='-', return_value=False,
                 ks = ['{}{}{}'.format(root, sep, k)]
             pass
         category += ks
-        for i in ks:
-            if 'content-变更记录-变更后-变更后中的链接-链接:' in i:
-                print(i)
     return category
 
 

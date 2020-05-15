@@ -12,7 +12,8 @@ import datetime as dt
 from Graph import BaseGraph
 from Calf.data import BaseModel
 from Graph.exception import ExceptionInfo, SuccessMessage
-from Graph.entity import Enterprise, News
+from Graph.entity import entities, legal
+from Graph.entity import Enterprise, News, Related
 from Graph.relationship import Have
 from Graph.enterprise_graph import EtpGraph
 
@@ -21,7 +22,10 @@ class NewsGraph(BaseGraph):
 
     def __init__(self):
         BaseGraph.__init__(self)
-        self.base = BaseModel(tn='qcc_cq_new')
+        self.base = BaseModel(
+            tn='qcc.1.1',
+            location='gcxy',
+            dbname='data')
         pass
 
     def create_index_and_constraint(self):
@@ -31,35 +35,18 @@ class NewsGraph(BaseGraph):
         :return:
         """
         # TODO(leung): 要随时确保label的准确性
-        constraint = {
-            'News': [News.primarykey],
-            # 'Possession': [Possession.primarykey],
-            # 'Involveder': ['HASH_ID'],
-        }
-        index = {
-            # 'Enterprise': [('NAME',)]
-        }
+        used_entity = [
+            'News',
+        ]
+        constraint = {}
+        index = {}
+        for l in used_entity:
+            constraint[l] = [entities(l).primarykey]
+            idx = entities(l).index
+            if len(idx):
+                index[l] = idx
         self.add_index_and_constraint(index, constraint)
         pass
-
-    def create_nodes_from_news(self, news):
-        """
-        创建公司新闻下的新闻舆情节点对象，news参数是
-        news类的实例。
-        1.新闻舆情
-        :param news:
-        :return:
-        """
-        nodes = []
-        if len(news):
-            for _ in news:
-                _n = _.get_neo_node(primarykey=_.primarykey)
-                if _n is None:
-                    self.to_logs('filed initialize news'
-                                 ' Neo node', 'ERROR')
-                else:
-                    nodes.append(_n)
-        return nodes
 
     def create_all_relationship(self):
         """
@@ -68,23 +55,20 @@ class NewsGraph(BaseGraph):
         """
         ops = self.base.query(
             sql={'metaModel': '公司新闻'},
+            limit=10,
             no_cursor_timeout=True)
         i, k = 0, 0
         eg = EtpGraph()
         etp_count = ops.count()
         relationships = []
-        etp = Enterprise()
+        # etp = Enterprise()
         for o in ops:
             k += 1
             # if k < 43500:
             #     continue
-            # etp_n = self.NodeMatcher.match(
-            #     etp.label,
-            #     NAME=o['name']  # TODO(leung): 这里要注意，基本信息以外的模块中的url确定不了公司
-            # ).first()
+            # TODO(leung): 这里要注意，基本信息以外的模块中的url确定不了公司
             etp_n = self.match_node(
-                'Enterprise', 'ShareHolder', 'Involveder',
-                'Invested', 'Client', 'Supplier',
+                *legal,
                 cypher='_.NAME = "{}"'.format(o['name'])
             )
             if etp_n is None:
@@ -94,25 +78,31 @@ class NewsGraph(BaseGraph):
                 )
                 if _ is not None:
                     etp = Enterprise(_)
-                    etp_n = etp.get_neo_node(primarykey=etp.primarykey)
+                    etp_n = self.get_neo_node(etp)
                     # 虽然在创建司法关系的时候会创建未在库中的企业，但不会创建
                     # 这个企业的基本关系，因此需要添加其基本关系
                     relationships += eg.create_relationship_from_enterprise_baseinfo(_)
                     pass
                 else:
                     # 没有这个公司的信息，那就创建一个信息不全的公司
-                    etp = Enterprise({'name': o['name'], 'metaModel': '基本信息'})
-                    etp_n = etp.get_neo_node(primarykey=etp.primarykey)
+                    etp = Related()
+                    etp['NAME'] = o['name']
+                    etp['URL'] = o['url']
+                    etp_n = self.get_neo_node(etp)
+                    if etp_n is None:
+                        continue
                     pass
 
             if '新闻舆情' in o['content'].keys():
-                n_info = o['content']['新闻舆情']
-                ns = News.create_from_dict(n_info)
-                ns_n = self.create_nodes_from_news(ns)
-                for n_n in ns_n:
-                    relationships.append(
-                        Have(etp_n, n_n).get_relationship()
-                    )
+                data = self.get_format_dict(o['content']['新闻舆情'])
+                ns = News.create_from_dict(data)
+                for n in ns:
+                    n_ = n.pop('news')
+                    n_n = self.get_neo_node(n_)
+                    if n_n is not None:
+                        relationships.append(
+                            Have(etp_n, n_n, **n).get_relationship()
+                        )
                 pass
             if len(relationships) > 1000:
                 i += 1

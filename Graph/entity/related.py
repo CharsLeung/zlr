@@ -1,33 +1,29 @@
 # encoding: utf-8
 
 """
-project = zlr
-file_name = involveder
+project = zlr(20200403备份)
+file_name = related
 author = Administrator
-datetime = 2020/3/30 0030 下午 14:21
+datetime = 2020/5/8 0008 下午 17:02
 from = office desktop
 """
 import warnings
 from Graph.entity import QccRequest
 
 
-class Involveder(QccRequest):
+class Related(QccRequest):
 
     """
-    案件参与者
+    有关对象，泛指一切有关对象
     """
     ATTRIBUTES = [
         ['名称', 'NAME'],
         ['链接', 'URL']
     ]
 
-    # 案件参与者不见得有链接，但一定会有一个名称
-    # 但有一个问题，名称很有可能存在重复的，类似
-    # 有很多同名的人,所以，根据基础属性算一个哈希
-    # ID
     primarykey = 'HASH_ID'
 
-    index = [('NAME',)]
+    index = [('NAME',), ('URL',)]
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
@@ -45,4 +41,7 @@ class Involveder(QccRequest):
         if 'URL' in self.BaseAttributes.keys():
             self.BaseAttributes['URL'] = self.parser_url(
                 self.BaseAttributes['URL'])
+            if self.BaseAttributes['URL'] is None:
+                if len(self.BaseAttributes['NAME']) < 2:
+                    self.BaseAttributes['NAME'] = None
         pass

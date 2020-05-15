@@ -19,18 +19,19 @@ class Ruling(QccRequest):
     """
 
     ATTRIBUTES = [
-        ['案件名称', 'CASE_NAME'],
-        ['案件链接', 'URL'],
-        ['案件身份', 'CASE_IDENTITY'],  # 这一属性应体现到关系属性当中去
+        ['文书标题', 'CASE_NAME'],
+        ['文书链接', 'URL'],
+        # ['案件身份', 'CASE_IDENTITY'],  # 这一属性应体现到关系属性当中去
         ['案由', 'CASE_ORIGIN'],
         ['案号', 'CASE_NUM'],
         ['执行法院', 'COURT'],
-        ['案件金额', 'CASE_AMOUNT'],
+        # ['案件金额', 'CASE_AMOUNT'],
         ['发布日期', 'RELEASE_DATE']
     ]
 
     synonyms = {
-        '案号名称': '案号'
+        '案号名称': '案号',
+        '法院名称': '执行法院'
     }
 
     primarykey = 'CASE_NUM'
@@ -47,6 +48,7 @@ class Ruling(QccRequest):
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of justice case.')
+                    self.BaseAttributes[k] = v
         if 'CASE_IDENTITY' in self.BaseAttributes.keys():
             self.CASE_IDENTITY = self.BaseAttributes.pop('CASE_IDENTITY')
         else:
@@ -87,16 +89,30 @@ class Ruling(QccRequest):
         :return:
         """
         # _ = {}
-        c1 = case_identity.pop('案件')
-        case_identity['案件名称'] = c1['名称']
-        case_identity['案件链接'] = c1['链接']
-        c2 = case_identity.pop('案件身份')
-        cnt = c2['内容'].replace('-\n', '-').split('\n')
-        cnt = [c.split('-') for c in cnt]
+        c1 = case_identity.pop('裁判文书')
+        case_identity['文书标题'] = c1['标题']
+        case_identity['文书链接'] = c1['链接']
+        _ = case_identity.pop('案件身份').split('|')
+        _1 = _[0].replace('-\n', '-').split('\n')
+        _1_ = []
+        for __ in _1:
+            i = __.split('-')
+            if len(i) == 2:
+                _1_.append([i[0].strip(), i[1].strip()])
+        _1 = _1_
+        if len(_) > 1:
+            _2 = [i.strip() for i in _[1].split(' ')]
+            if len(_1) > len(_2):
+                _2 = _2 + [None for i in range(len(_1) - len(_2))]
+        else:
+            _2 = [None for i in range(len(_1))]
+        # c2 = {'内容': _[0], '链接': _[1].split(' ')}
+        # cnt = c2['内容'].replace('-\n', '-').split('\n')
+        # cnt = [c.split('-') for c in _1]
         inv = []
-        for i in range(len(c2['链接'])):
-            c = cnt[i]
-            c.append(QccRequest.parser_url(c2['链接'][i]['链接']))
+        for i in range(len(_2)):
+            c = _1[i]
+            c.append(QccRequest.parser_url(_2[i]))
             if len(c) == 3:
                 inv.append(c)
             else:

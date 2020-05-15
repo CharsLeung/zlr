@@ -29,6 +29,8 @@ class JusticeCase(QccRequest):
 
     primarykey = 'CASE_NUM'
 
+    # index = [('CASE_NAME',)]
+
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
         if len(kwargs):

@@ -14,12 +14,13 @@ from Graph.operating_risk_graph import OptRiskGraph
 from Graph.operating_graph import OptGraph
 from Graph.news_graph import NewsGraph
 from Graph.develop_graph import DvpGraph
+from Graph.rights_graph import RightsGraph
 
 
 def f1():
     eg = EtpGraph()
     # eg.create_index_and_constraint()
-    # eg.create_all_nodes()
+    eg.create_all_nodes()
     eg.create_all_relationship()
     if len(eg.logs):
         eg.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
@@ -60,7 +61,7 @@ def f4():
     pass
 
 
-# f4()
+f4()
 
 
 def f5():
@@ -93,4 +94,15 @@ def f7():
     pass
 
 
-f7()
+# f7()
+
+
+def f8():
+    dg = RightsGraph()
+    dg.create_all_relationship()
+    if len(dg.logs):
+        dg.save_logs('D:\graph_data\graph_run_logs_for_right.csv')
+    pass
+
+
+# f8()

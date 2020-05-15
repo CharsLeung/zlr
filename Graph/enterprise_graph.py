@@ -11,40 +11,55 @@ import datetime as dt
 from Graph import BaseGraph
 from Calf.data import BaseModel
 from Graph.exception import ExceptionInfo, SuccessMessage
-from Graph.entity import Enterprise
+from Graph.entity import Enterprise, entities, legal, person
 from Graph.relationship import LegalRep
 from Graph.relationship import BeInOffice
 from Graph.relationship import Located
 from Graph.relationship import ShareHolding
 from Graph.relationship import Have
+from Graph.relationship import Investing
+from Graph.relationship import BranchAgency
+from Graph.relationship import SuperiorAgency
 
 
 class EtpGraph(BaseGraph):
 
     def __init__(self):
         BaseGraph.__init__(self)
-        self.base = BaseModel(tn='qcc_cq_new')
+        self.base = BaseModel(
+            tn='qcc.1.1',
+            location='gcxy',
+            dbname='data')
         pass
 
     def create_index_and_constraint(self):
         """
         为涉及到的实体创建唯一性约束跟索引，唯一键自动带有索引
-        不比再单独创建索引
+        不必再单独创建索引
         :return:
         """
-        # TODO(leung): 要随时确保label的准确性
-        constraint = {
-            'Enterprise': ['URL'],
-            'Person': ['URL'],
-            'ShareHolder': ['URL'],
-            'Telephone': ['TELEPHONE'],
-            'Address': ['ADDRESS'],
-            'Email': ['EMAIL'],
-        }
-        index = {
-            'Enterprise': [('NAME',)],
-            'Person': [('NAME',)]
-        }
+        # 用到的实体对象
+        used_entity = [
+            'Enterprise',
+            'Person',
+            'Telephone',
+            'Address',
+            'Email',
+            'ShareHolder',
+            'Branch',
+            'HeadCompany',
+            'Invested',
+            'Related',
+            'ConstructionProject',
+            'Certificate'
+        ]
+        constraint = {}
+        index = {}
+        for l in used_entity:
+            constraint[l] = [entities(l).primarykey]
+            idx = entities(l).index
+            if len(idx):
+                index[l] = idx
         self.add_index_and_constraint(index, constraint)
         pass
 
@@ -55,8 +70,8 @@ class EtpGraph(BaseGraph):
         2.法人代表
         3.管理人员
         4.地址
-        实际上公司基本信息里面还包含一个很重要的对象：行业，但
-        行业作为一个重要的对象单独处理
+        实际上公司基本信息里面还衍生出了很多实体对象
+        但这些对象是在后面随关系一并创建的
         :return:
         """
         nodes = []
@@ -73,13 +88,13 @@ class EtpGraph(BaseGraph):
             lr = etp.get_legal_representative()
             lr_n = lr.get_neo_node(primarykey=lr.primarykey)
             if lr_n is None:
-                self.to_logs('filed initialize legal representative Neo node',
-                             'ERROR', eb['name'])
+                self.to_logs('filed initialize legal representative '
+                             'Neo node', 'ERROR', eb['name'])
             else:
                 nodes.append(lr_n)
         except Exception as e:
-            self.to_logs('deal legal representative raise ({})'.format(e),
-                         'EXCEPTION', eb['name'])
+            self.to_logs('deal legal representative raise ({})'
+                         ''.format(e), 'EXCEPTION', eb['name'])
         try:
             ms = etp.get_manager()
             if len(ms):
@@ -87,15 +102,14 @@ class EtpGraph(BaseGraph):
                     m_n = m['person']
                     m_n = m_n.get_neo_node(primarykey=m_n.primarykey)
                     if m_n is None:
-                        self.to_logs('filed initialize major manager Neo node',
-                                     'ERROR', eb['name'])
+                        self.to_logs('filed initialize major manager '
+                                     'Neo node', 'ERROR', eb['name'])
 
                     else:
                         nodes.append(m_n)
         except Exception as e:
             self.to_logs('deal major managers raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
-        # sh = etp.get_share_holder()
         try:
             dz = etp.get_address()
             dz_n = dz.get_neo_node(primarykey=dz.primarykey)
@@ -112,13 +126,7 @@ class EtpGraph(BaseGraph):
 
     def create_all_nodes(self):
         """
-        创建企业基本信息衍生出来的所有节点：
-        1.企业
-        2.法人代表
-        3.管理人员
-        4.地址
-        实际上公司基本信息里面还包含一个很重要的对象：行业，但
-        行业作为一个重要的对象单独处理
+        创建企业基本信息衍生出来的所有节点
         :return:
         """
         # import pandas as pd
@@ -128,14 +136,13 @@ class EtpGraph(BaseGraph):
                 'metaModel': '基本信息',
                 # 'name': {'$in': ns['name'].tolist()}
             },
+            limit=1000,
             no_cursor_timeout=True)
         i, j = 0, 0
         etp_count = enterprises.count()
         nodes = []
         for e in enterprises:
             j += 1
-            if j < 0:
-                continue
             nds = self.create_nodes_from_enterprise_baseinfo(e)
             nodes += nds
             if len(nodes) > 1000:
@@ -185,19 +192,27 @@ class EtpGraph(BaseGraph):
             return rps
         try:
             lr = etp.get_legal_representative()
-            lr_n = lr.get_neo_node(primarykey=lr.primarykey)
+            # 法定代表人有可能会是以下这些对象
+            lr_n = self.match_node(
+                *['Person'] + legal,
+                cypher='_.URL = "{}"'.format(lr['URL'])
+            )
+            if lr_n is None:
+                lr_n = lr.get_neo_node(primarykey=lr.primarykey)
             if lr_n is None:
                 self.to_logs('filed initialize legal representative Neo node',
                              'ERROR', eb['name'])
             else:
                 rps.append(LegalRep(lr_n, etp_n).get_relationship())
         except Exception as e:
-            self.to_logs('deal legal representative raise ()'.format(e),
+            ExceptionInfo(e)
+            self.to_logs('deal legal representative raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         try:
             ms = etp.get_manager()
             if len(ms):
                 for m in ms:
+                    # 主要人员 下面必然是人
                     m_n = m.pop('person')
                     m_n = m_n.get_neo_node(primarykey=m_n.primarykey)
                     if m_n is None:
@@ -206,7 +221,7 @@ class EtpGraph(BaseGraph):
                     else:
                         rps.append(BeInOffice(m_n, etp_n, **m).get_relationship())
         except Exception as e:
-            self.to_logs('deal major managers raise ()'.format(e),
+            self.to_logs('deal major managers raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         # sh = etp.get_share_holder()
         try:
@@ -218,50 +233,38 @@ class EtpGraph(BaseGraph):
             else:
                 rps.append(Located(etp_n, dz_n).get_relationship())
         except Exception as e:
-            self.to_logs('deal address raise ()'.format(e),
+            self.to_logs('deal address raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         try:
             sh = etp.get_share_holder()
             if len(sh):
                 for s in sh:
-                    s_ = s['share_holder']
-                    # 1.在所有公司里面去找
-                    sh_n_ed = self.NodeMatcher.match(
-                        etp.label,
-                        # **{etp.primarykey: s_.BaseAttributes[s_.primarykey]}
-                    ).where('_.NAME = "{}" OR _.{} = "{}"'.format(
-                        s_.BaseAttributes['NAME'], etp.primarykey,
-                        s_.BaseAttributes[s_.primarykey]
-                    )).first()
-                    if sh_n_ed is None:
-                        # 2.在人里面去找
-                        sh_n_ed = self.NodeMatcher.match(
-                            str(lr.label),
-                            **{lr.primarykey: s_.BaseAttributes[s_.primarykey]}
-                        ).first()
-                    if sh_n_ed is None:  # 在以有的对象里面没找到这个股东
+                    s_ = s.pop('share_holder')
+                    # 股东有可能会是以下这些对象
+                    sh_n = self.match_node(
+                        'Person',
+                        cypher='_.URL = "{}"'.format(s_['URL'])
+                    )
+                    if sh_n is None:
+                        sh_n = self.match_node(
+                            *legal,
+                            cypher='_.URL = "{}" OR _.NAME = "{}"'.format(
+                                s_['URL'], s_['NAME'])
+                        )
+                    if sh_n is None:  # 在以有的对象里面没找到这个股东
                         # 创建这个意外的股东
                         sh_n = s_.get_neo_node(primarykey=s_.primarykey)
                         if sh_n is None:
-                            self.to_logs('filed initialize unexpected share holder Neo node',
-                                         'ERROR', eb['name'])
-                        else:
-                            # unexpected_share_holder_nds.append(sh_n)
-                            rps.append(ShareHolding(
-                                sh_n, etp_n
-                            ).get_relationship())
-                    else:
-                        # 此时的sh_n_ed可能就是一个企业或者个人，
-                        # ShareHolding的属性需要补充进来
-                        s_.BaseAttributes.pop('NAME')
-                        s_.BaseAttributes.pop('URL')
+                            self.to_logs('filed initialize unexpected share '
+                                         'holder Neo node', 'ERROR', eb['name'])
+                    if sh_n is not None:
                         rps.append(ShareHolding(
-                            sh_n_ed, etp_n, **s_.BaseAttributes
+                            sh_n, etp_n, **s
                         ).get_relationship())
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal share holder raise ()'.format(e),
+            self.to_logs('deal share holder raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         try:
@@ -280,7 +283,7 @@ class EtpGraph(BaseGraph):
             pass
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal telephone number raise ()'.format(e),
+            self.to_logs('deal telephone number raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
 
         try:
@@ -299,7 +302,136 @@ class EtpGraph(BaseGraph):
             pass
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal email raise ()'.format(e),
+            self.to_logs('deal email raise ({})'.format(e),
+                         'EXCEPTION', eb['name'])
+        try:
+            ivs = etp.get_invest_outer()
+            if len(ivs):
+                for iv in ivs:
+                    iv_ = iv.pop('invested')
+                    # 被投资企业可能是下面这些对象
+                    iv_n = self.match_node(
+                        *legal,
+                        cypher='_.URL = "{}" OR _.NAME = "{}"'.format(
+                            iv_['URL'], iv_['NAME'])
+                    )
+                    if iv_n is None:
+                        iv_n = iv_.get_neo_node(primarykey=iv_.primarykey)
+                        if iv_n is None:
+                            self.to_logs('filed initialize unexpected invested '
+                                         'Neo node', 'ERROR', eb['name'])
+                            continue
+                    rps.append(Investing(etp_n, iv_n, **iv).get_relationship())
+        except Exception as e:
+            ExceptionInfo(e)
+            self.to_logs('deal invest raise ({})'.format(e),
+                         'EXCEPTION', eb['name'])
+        try:
+            brs = etp.get_branch()
+            if len(brs):
+                for b in brs:
+                    b_ = b.pop('branch')
+                    # 分支机构可能是下面这些对象
+                    b_n = self.match_node(
+                        *legal,
+                        cypher='_.URL = "{}" OR _.NAME = "{}"'.format(
+                            b_['URL'], b_['NAME'])
+                    )
+                    if b_n is None:
+                        b_n = b_.get_neo_node(primarykey=b_.primarykey)
+                        if b_n is None:
+                            self.to_logs('filed initialize unexpected branch '
+                                         'Neo node', 'ERROR', eb['name'])
+                            continue
+                        p_ = b['principal']
+                        p_n = p_.get_neo_node(primarykey=p_.primarykey)
+                        if p_n is not None:
+                            rps.append(LegalRep(p_n, b_n).get_relationship())
+                    b.pop('principal')
+                    rps.append(BranchAgency(
+                        etp_n, b_n, **b
+                    ).get_relationship())
+        except Exception as e:
+            ExceptionInfo(e)
+            self.to_logs('deal branch raise ({})'.format(e),
+                         'EXCEPTION', eb['name'])
+        try:
+            hcs = etp.get_head_company()
+            if len(hcs):
+                for h in hcs:
+                    h_ = h.pop('head')
+                    # 总公司可能是下面这些对象
+                    h_n = self.match_node(
+                        *legal,
+                        cypher='_.URL = "{}" OR _.NAME = "{}"'.format(
+                            h_['URL'], h_['NAME'])
+                    )
+                    if h_n is None:
+                        h_n = h_.get_neo_node(primarykey=h_.primarykey)
+                        if h_n is None:
+                            self.to_logs('filed initialize unexpected head '
+                                         'company Neo node', 'ERROR', eb['name'])
+                            continue
+                        p_ = h['principal']
+                        p_n = p_.get_neo_node(primarykey=p_.primarykey)
+                        if p_n is not None:
+                            rps.append(LegalRep(p_n, h_n).get_relationship())
+                    h.pop('principal')
+                    rps.append(SuperiorAgency(
+                        etp_n, h_n, **h
+                    ).get_relationship())
+        except Exception as e:
+            ExceptionInfo(e)
+            self.to_logs('deal head company raise ({})'.format(e),
+                         'EXCEPTION', eb['name'])
+        try:
+            cps = etp.get_construction_project()
+            if len(cps):
+                for c in cps:
+                    c_ = c.pop('project')
+                    c_n = c_.get_neo_node(primarykey=c_.primarykey)
+                    if c_n is None:
+                        self.to_logs('filed initialize unexpected construction '
+                                     'project Neo node', 'ERROR', eb['name'])
+                        continue
+                    jsdw = c.pop('jsdw')
+                    # 查询这个建设单位是否已经存在
+                    j_n = self.match_node(
+                        *legal,
+                        cypher='_.URL = "{}" OR _.NAME = "{}"'.format(
+                            jsdw['URL'], jsdw['NAME'])
+                    )
+                    if j_n is None:
+                        j_n = jsdw.get_neo_node(primarykey=jsdw.primarykey)
+                        if j_n is None:
+                            self.to_logs('filed initialize unexpected construction '
+                                         'agency Neo node', 'ERROR', eb['name'])
+                            continue
+                    # TODO(lj):需要考虑是否将承建、建设单独列为一种关系
+                    rps.append(Have(
+                        etp_n, c_n, **dict(角色='承建单位', **c)
+                    ).get_relationship())
+                    rps.append(Have(
+                        j_n, c_n, **dict(角色='建设单位', **c)
+                    ).get_relationship())
+        except Exception as e:
+            ExceptionInfo(e)
+            self.to_logs('deal construction project raise ({})'.format(e),
+                         'EXCEPTION', eb['name'])
+        try:
+            ccs = etp.get_construction_certificate()
+            if len(ccs):
+                for c in ccs:
+                    c_ = c.pop('ctf')
+                    c_n = c_.get_neo_node(primarykey=c_.primarykey)
+                    if c_n is None:
+                        self.to_logs('filed initialize unexpected construction '
+                                     'certificate Neo node', 'ERROR', eb['name'])
+                        continue
+                    rps.append(Have(etp_n, c_n, **c).get_relationship())
+        except Exception as e:
+            ExceptionInfo(e)
+            self.to_logs('deal construction certificate raise ({})'.format(e),
                          'EXCEPTION', eb['name'])
         return rps
 
@@ -313,7 +445,11 @@ class EtpGraph(BaseGraph):
         :return:
         """
         enterprises = self.base.query(
-            sql={'metaModel': '基本信息'},
+            sql={
+                'metaModel': '基本信息',
+                # 'name': '重庆长安汽车股份有限公司'
+            },
+            limit=1000,
             no_cursor_timeout=True)
         i, j = 0, 0
         etp_count = enterprises.count()

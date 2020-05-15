@@ -33,6 +33,8 @@ class Person(QccRequest):
 
     primarykey = 'URL'
 
+    index = [('NAME',)]
+
     def __init__(self,  NAME=None, SEX=None, EDUCATION=None, URL=None, **kwargs):
         QccRequest.__init__(self)
 
@@ -55,11 +57,3 @@ class Person(QccRequest):
             self.BaseAttributes['URL'] = self.parser_url(
                 self.BaseAttributes['URL'])
         pass
-
-    # def get_neo_node(self):
-    #     return NeoNode(
-    #         'person',
-    #         **self.BaseAttributes
-    #     )
-
-# Person()

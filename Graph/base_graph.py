@@ -9,6 +9,8 @@ from = 'office desktop'
 """
 import pandas as pd
 import datetime as dt
+
+from Graph.entity import QccRequest
 from py2neo import Graph, NodeMatcher, RelationshipMatcher, Subgraph
 
 
@@ -47,8 +49,10 @@ class BaseGraph:
         :return:
         """
         ns = None
+        # _ = graph.run('match (n:Enterprise{URL:"%s"}) return n limit 1' % url)
         for label in labels:
-            n = self.NodeMatcher.match(label).where(cypher).first()
+            n = self.NodeMatcher.match(label).where(
+                cypher).first()
             if n is not None:
                 return n
         return ns
@@ -75,7 +79,7 @@ class BaseGraph:
             l = len(nodes)
             if l < toleration:
                 return
-            bk = l // 10 + 1    # 每块的数量
+            bk = l // 10 + 1  # 每块的数量
             for i in range(0, 11):
                 nds = nodes[i * bk:(i + 1) * bk]
                 try:
@@ -89,7 +93,8 @@ class BaseGraph:
                                  'EXCEPTION')
                     self.graph_merge_nodes(nds, toleration)
 
-    def graph_merge_relationships(self, relationships=None, toleration=10):
+    def graph_merge_relationships(self, relationships=None,
+                                  toleration=10, **kwargs):
         """
         把一个子图合并到数据库中去，因为我们一般都是批量插入节点或者关系，
         但有时候在这批量数据中可能有一些异常的节点，会影响整批数据的插入，
@@ -105,12 +110,13 @@ class BaseGraph:
                 tx.merge(Subgraph(relationships=relationships))
                 tx.commit()
         except Exception as e:
+            print(e)
             self.to_logs('commit subgraph to database raise ({})'.format(e),
-                         'EXCEPTION')
+                         'EXCEPTION', name=str(kwargs))
             l = len(relationships)
             if l < toleration:
                 return
-            bk = l // 10 + 1    # 每块的数量
+            bk = l // 10 + 1  # 每块的数量
             for i in range(0, 11):
                 rps = relationships[i * bk:(i + 1) * bk]
                 try:
@@ -121,8 +127,8 @@ class BaseGraph:
                 except Exception as e:
                     self.to_logs('commit subgraph to database raise ({}) on '
                                  '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
-                                 'EXCEPTION')
-                    self.graph_merge_nodes(rps, toleration)
+                                 'EXCEPTION', name=str(kwargs))
+                    self.graph_merge_relationships(rps, toleration, **kwargs)
 
     def add_index_and_constraint(self, index=None, constraint=None):
         """
@@ -151,13 +157,44 @@ class BaseGraph:
                 if l in labels:
                     idx0 = self.graph.schema.get_indexes(l)
                     for i in idx:
+                        f = True
                         for i0 in idx0:
-                            if i != i0:
-                                self.graph.schema.create_index(l, *i)
-                                print('success to create index for '
-                                      '{}({})'.format(l, ','.join(i)))
+                            if i == i0:
+                                f = False
+                        if f:
+                            self.graph.schema.create_index(l, *i)
+                            print('success to create index for '
+                                  '{}({})'.format(l, ','.join(i)))
                 else:
-                    print('failed create index for label(){}, '
-                          'this label not in db.')
+                    print('failed create index for label({}){}, '
+                          'this label not in db.'.format(l, idx))
                     self.index_and_constraint_statue = False
         pass
+
+    @staticmethod
+    def get_format_amount(k, v):
+        return QccRequest.get_format_amount(k, v)
+
+    @staticmethod
+    def get_format_dict(data):
+        _ = QccRequest.get_format_dict(data)
+        return _ if isinstance(_, list) else [_]
+
+    def get_neo_node(self, node):
+        if isinstance(node, list):
+            nodes = []
+            for n_ in node:
+                n = n_.get_neo_node(primarykey=n_.primarykey)
+                if n is None:
+                    self.to_logs('filed initialize {} Neo node'.format(
+                        n_.label), 'ERROR')
+                else:
+                    nodes.append(n)
+            return nodes
+        else:
+            n = node.get_neo_node(primarykey=node.primarykey)
+            if n is None or n.__primarykey__ is None:
+                print('--')
+                self.to_logs('filed initialize {} Neo node'.format(
+                    node.label), 'ERROR')
+            return n

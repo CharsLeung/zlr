@@ -16,12 +16,12 @@ class LegalRep:
     法人代表
     """
 
-    name = 'LEGAL_REPRESENTATIVE'
+    name = 'LEGAL'
 
     def __init__(self, person, enterprise, **kwargs):
         self.person = person
         self.enterprise = enterprise
-        self.properties = kwargs
+        self.prop = kwargs
         pass
 
     def get_relationship(self):
@@ -29,7 +29,7 @@ class LegalRep:
             self.person,
             self.name,
             self.enterprise,
-            **self.properties
+            **self.prop
         )
 
 

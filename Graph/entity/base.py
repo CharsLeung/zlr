@@ -8,19 +8,30 @@ datetime = '2020-03-16 18:46'
 IDE = PyCharm
 """
 import re
+import copy
+import hashlib
 
 from Graph.entity import NeoNode
+from Graph.exception import ExceptionInfo
 
 
-class QccRequest(object):
+class QccRequest:
 
-    primarykey = None
+    primarykey = None   # 唯一键
+
+    index = []  # 索引
 
     ATTRIBUTES = []
 
     synonyms = {}
 
+    unique_code_pattern = re.compile('/[a-zA-Z_]+_\w{32}.html')
+
     def __init__(self, ReturnString=None):
+        self.__load_content__(ReturnString)
+        pass
+
+    def __load_content__(self, ReturnString):
         self.BaseAttributes = {}
         if ReturnString is not None:
             if isinstance(ReturnString, dict):
@@ -41,6 +52,17 @@ class QccRequest(object):
             # self.id = ReturnString['url'] if 'url' in ks else None
             self.content = ReturnString['content'] if 'content' in ks else None
         pass
+
+    def reload_content(self, ReturnString):
+        self.__load_content__(ReturnString)
+        return self
+        pass
+
+    def __getitem__(self, key):
+        return self.BaseAttributes[key]
+
+    def __setitem__(self, key, value):
+        self.BaseAttributes[key] = value
 
     def content_keys(self):
         pass
@@ -68,7 +90,8 @@ class QccRequest(object):
         return str(self.__class__.__name__)
 
     def get_neo_node(self, primarylabel=None, primarykey=None):
-        if sum([1 if v is not None else 0 for v in self.BaseAttributes.values()]):
+        if sum([1 if v is not None else 0 for v in
+                self.BaseAttributes.values()]):
             n = NeoNode(self.label, **self.BaseAttributes)
             if primarylabel is not None:
                 n.__primarylabel__ = primarylabel
@@ -76,6 +99,8 @@ class QccRequest(object):
                 n.__primarylabel__ = self.label
             if primarykey is not None:
                 n.__primarykey__ = primarykey
+                if n[primarykey] is None:
+                    return None
             return n
         else:
             return None
@@ -88,16 +113,17 @@ class QccRequest(object):
         :return:
         """
         try:
-            url = QccRequest.format_url(url)
-            _ = re.search('/[a-zA-Z_]+_\w{32}', url)
+            # url = QccRequest.format_url(url)
+            _ = re.search(QccRequest.unique_code_pattern, url)
             if _ is not None:
-                # print('"{}",'.format(_.group(0)))
-                _ = 'https://www.qcc.com' + _.group(0) + '.html'
+                # print('"{}",'.format(_.group(0)))'https://www.qcc.com' +
+                _ = _.group(0)
             else:
                 _ = url
             return _
         except Exception as e:
-            print(e)
+            # ExceptionInfo(e)
+            # print('invalid url({}) for person or enterprise.'.format(url))
             return url
 
     @staticmethod
@@ -109,11 +135,12 @@ class QccRequest(object):
         """
         if isinstance(url, str):
             fu = []
+            url = url.split(' ')[0]
             url = url.split('/')[1:]
             for _ in url:
                 if len(_):
                     fu.append(_)
-            return 'https://' + '/'.join(fu)
+            return '/' + '/'.join(fu)
         else:
             return url
 
@@ -134,4 +161,41 @@ class QccRequest(object):
             self.label, attribute if attribute is not None else self.primarykey
         )
 
+    @staticmethod
+    def get_format_amount(k, v):
+        """
+        把类似：'注册资本':{'金额': 123, '单位': '万元人民币'}
+        转换成{'注册资本(金额)':123, '注册资本(单位)':'万元人民币'}
+        :param v:
+        :param k:
+        :return:
+        """
+        _ = {}
+        for a, b in zip(v.keys(), v.values()):
+            _['{}({})'.format(k, a)] = b
+        return _
+
+    @staticmethod
+    def get_format_dict(data):
+        """
+        把原始数据中以“#”加一个数字作为key，这种其实
+        是一个数组，把这种还原成数组
+        :param data:
+        :return:
+        """
+        if len(data):
+            data = copy.deepcopy(data)
+            ks = data.keys()
+            if sum(['#' in k for k in ks]) == len(ks):
+                ds = list(data.values())
+                return ds if len(ds) > 1 else ds[0]
+            else:
+                return data
+        else:
+            return []
+
+    @staticmethod
+    def get_entity_unique_code(data):
+        return '/syx_{}'.format(hashlib.md5(
+            data.encode("utf8")).hexdigest())
 

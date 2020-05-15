@@ -28,6 +28,7 @@ class Website(QccRequest):
     synonyms = {
         '网站名称': '名称',
         '网站备案_许可证号': '备案许可证号',
+        '网站备案许可证号': '备案许可证号',
     }
 
     primarykey = 'LICENSE'
@@ -61,16 +62,16 @@ class Website(QccRequest):
         wbs = []
 
         def f(c):
-            del c['序号']
-            # _ = c['证书']
+            # del c['序号']
+            # _ = c.pop('证书')
             # c['证书名称'] = _['名称']
             # c['证书链接'] = _['链接']
-            return c
+            return dict(website=Website(**c))
 
         if isinstance(content, dict):
-            wbs.append(Website(**f(content)))
+            wbs.append(f(content))
         elif isinstance(content, list):
-            wbs += [Website(**f(c)) for c in content]
+            wbs += [f(c) for c in content]
         else:
-            warnings.warn('invalid type for Certificate content.')
+            warnings.warn('invalid type for Website content.')
         return wbs

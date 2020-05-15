@@ -1,39 +1,37 @@
 # encoding: utf-8
 
 """
-project = 'zlr'
-file_name = 'invested'
-author = 'Administrator'
-datetime = '2020/3/26 0026 下午 18:05'
-from = 'office desktop' 
+project = zlr(20200403备份)
+file_name = plot
+author = Administrator
+datetime = 2020/5/11 0011 上午 11:22
+from = office desktop
 """
 import warnings
-
 from Graph.entity import QccRequest
 
 
-class Invested(QccRequest):
+class Plot(QccRequest):
 
     """
-    被投资企业，对外投资对象不是某个以存在的企业时，新建一个被投资实体
+    地块
     """
-
     ATTRIBUTES = [
-        ['名称', 'NAME'],
+        ['位置', 'NAME'],
         ['链接', 'URL'],
-        ['注册资本(金额)', 'REGISTERED_CAPITAL_AMOUNT'],
-        ['注册资本(单位)', 'REGISTERED_CAPITAL_UNIT'],
-        ['成立日期', 'ESTABLISHMENT_DATE'],
-        ['经营状态', 'OPERATING_STATUS']
+        ['面积(数量)', 'AMOUNT'],
+        ['面积(单位)', 'UNIT'],
+        ['供地方式', 'SUPPLY_TYPE'],
+        ['土地用途', 'USE'],
+        ['行政区', 'CITY'],
     ]
 
     synonyms = {
-        '状态': '经营状态',
-        # '认缴出资额_万元': '认缴出资额',
-        # '链接': '股东链接'
+        '面积': '面积(数量)',
+        '所属地区': '行政区'
     }
 
-    primarykey = 'URL'
+    primarykey = 'HASH_ID'
 
     index = [('NAME',)]
 
@@ -48,8 +46,8 @@ class Invested(QccRequest):
                 elif k in sks:
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
-                    warnings.warn('Undefined key for dict of invested.')
-                    self.BaseAttributes[k] = v
+                    warnings.warn('Undefined key for dict of case involveder.')
+        self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
         if 'URL' in self.BaseAttributes.keys():
             self.BaseAttributes['URL'] = self.parser_url(
                 self.BaseAttributes['URL'])

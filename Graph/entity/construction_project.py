@@ -1,41 +1,37 @@
 # encoding: utf-8
 
 """
-project = 'zlr'
-file_name = 'invested'
-author = 'Administrator'
-datetime = '2020/3/26 0026 下午 18:05'
-from = 'office desktop' 
+project = zlr(20200403备份)
+file_name = construction_project
+author = Administrator
+datetime = 2020/5/8 0008 下午 16:52
+from = office desktop
 """
 import warnings
 
 from Graph.entity import QccRequest
 
 
-class Invested(QccRequest):
+class ConstructionProject(QccRequest):
 
     """
-    被投资企业，对外投资对象不是某个以存在的企业时，新建一个被投资实体
+    建筑工程项目
     """
 
     ATTRIBUTES = [
-        ['名称', 'NAME'],
-        ['链接', 'URL'],
-        ['注册资本(金额)', 'REGISTERED_CAPITAL_AMOUNT'],
-        ['注册资本(单位)', 'REGISTERED_CAPITAL_UNIT'],
-        ['成立日期', 'ESTABLISHMENT_DATE'],
-        ['经营状态', 'OPERATING_STATUS']
+        ['项目名称', 'NAME'],
+        ['项目编码', 'PROJECT_NUM'],
+        ['项目类别', 'PROJECT_TYPE'],
+        ['项目属地', 'PROJECT_CITY'],
     ]
 
     synonyms = {
-        '状态': '经营状态',
+        # '状态': '经营状态',
         # '认缴出资额_万元': '认缴出资额',
         # '链接': '股东链接'
     }
 
-    primarykey = 'URL'
-
-    index = [('NAME',)]
+    primarykey = 'PROJECT_NUM'
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)

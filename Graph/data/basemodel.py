@@ -29,28 +29,28 @@ def read_json(path):
 # from utils import File
 
 
-def get_keys(_, root):
-    category = []
-    if isinstance(_, dict):
-        pass
-    else:
-        return []
-    for k, v in zip(_.keys(), _.values()):
-        # print('{}-{}'.format(root, k))
-        category.append('{}-{}'.format(root, k))
-        if isinstance(v, dict):
-            ks = get_keys(v, '{}-{}'.format(root, k))
-            pass
-        elif isinstance(v, list):
-            if len(v):
-                ks = get_keys(v[0], '{}-{}'.format(root, k))
-            else:
-                ks = []
-        else:
-            ks = []
-            pass
-        category += ks
-    return category
+# def get_keys(_, root):
+#     category = []
+#     if isinstance(_, dict):
+#         pass
+#     else:
+#         return []
+#     for k, v in zip(_.keys(), _.values()):
+#         # print('{}-{}'.format(root, k))
+#         category.append('{}-{}'.format(root, k))
+#         if isinstance(v, dict):
+#             ks = get_keys(v, '{}-{}'.format(root, k))
+#             pass
+#         elif isinstance(v, list):
+#             if len(v):
+#                 ks = get_keys(v[0], '{}-{}'.format(root, k))
+#             else:
+#                 ks = []
+#         else:
+#             ks = []
+#             pass
+#         category += ks
+#     return category
 
 
 # fs = File.get_all_file('D:\SYR\\20200229\\')
@@ -76,3 +76,12 @@ def get_keys(_, root):
 # with open('D:\SYR\\ssxx.csv', 'w', encoding='gbk') as f:
 #     f.writelines(data)
 #     pass
+
+def f1():
+    from Calf.data import BaseModel
+
+    bm = BaseModel(tn='qcc_cq_new_test')
+    js = read_json('D:\graph_data\基本信息\\115.238.252.22_owakrjctbm.json')
+    bm.insert_batch(js)
+
+f1()

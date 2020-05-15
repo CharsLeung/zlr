@@ -18,20 +18,18 @@ class Supplier(QccRequest):
     """
 
     ATTRIBUTES = [
-        ['供应商名称', 'NAME'],
-        ['供应商链接', 'URL'],
-        ['采购占比', 'PROPORTION'],
-        ['采购金额', 'AMOUNT'],
-        ['报告期', 'REPORT_DATE'],
-        ['数据来源', 'SOURCE']
+        ['名称', 'NAME'],
+        ['链接', 'URL'],
     ]
 
     synonyms = {
-        '采购金额_万元': '采购金额',
-        # '链接': '标的链接'
+        '供应商链接': '链接',
+        '供应商名称': '名称'
     }
 
     primarykey = 'URL'
+
+    index = [('NAME',)]
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
@@ -61,17 +59,19 @@ class Supplier(QccRequest):
         """
         obj = []
 
-        def f(c):
-            del c['序号']
-            _ = c.pop('供应商')
-            c['供应商名称'] = _['名称']
-            c['供应商链接'] = _['url']
-            return c
+        def f(_):
+            # del c['序号']
+            c = _.pop('供应商')
+            if '采购金额' in _.keys():
+                _ = dict(_, **cls.get_format_amount(
+                    '采购金额', _.pop('采购金额')
+                ))
+            return dict(supplier=Supplier(**c), **_)
 
         if isinstance(content, dict):
-            obj.append(Supplier(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [Supplier(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for supplier content.')
         return obj

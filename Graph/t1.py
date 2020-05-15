@@ -60,5 +60,14 @@ nds = {
     "TaxCredit":"税务信用",
     "News":"新闻",
 }
-for k, v in zip(nds.keys(), nds.values()):
-    print('"{}":"{}",'.format(v, k))
+# for k, v in zip(nds.keys(), nds.values()):
+#     print('"{}":"{}",'.format(v, k))
+
+class A:
+
+    attr = {'A': 1, 'B': 2}
+
+    def __getitem__(self, key):
+        return self.attr[key]
+
+print(A()['A'])

@@ -21,6 +21,7 @@ class Punishment(QccRequest):
         ['处罚事由', 'PUNISH_ORIGIN'],
         ['处罚内容', 'PUNISH_CONTENT'],
         ['处罚日期', 'PUNISH_DATE'],
+        ['公示日期', 'RELEASE_DATE'],
         ['决定机关', 'DECISION_AGENCY'],
         ['链接', 'URL'],
         ['决定机关类型', 'DECISION_AGENCY_TYPE']
@@ -28,12 +29,15 @@ class Punishment(QccRequest):
 
     synonyms = {
         '决定文书号': '决定文书号',
+        '决定书文号': '决定文书号',
         '违法行为类型': '处罚事由',
+        '违法类型': '处罚事由',
         '处罚事由': '处罚事由',
         '行政处罚内容': '处罚内容',
         '决定日期': '处罚日期',
         '处罚决定日期': '处罚日期',
         '决定机关': '决定机关',
+        '处罚单位': '决定机关',
     }
 
     primarykey = 'DECISION_RULING_NUM'
@@ -67,7 +71,10 @@ class Punishment(QccRequest):
                 if isinstance(c, dict):
                     if '序号' in c.keys():
                         del c['序号']
-                    return Punishment(**c)
+                    __ = c.pop('决定文书号')
+                    c['决定文书号'] = __['名称']
+                    c['链接'] = __['链接']
+                    return dict(punishment=Punishment(**c))
                 else:
                     warnings.warn('invalid type for Punishment, need a dict.')
                     return None
@@ -92,9 +99,9 @@ class Punishment(QccRequest):
                 if isinstance(c, dict):
                     if '序号' in c.keys():
                         del c['序号']
-                    ruling = c.pop('决定文书号')
-                    c = dict(c, **ruling)
-                    return Punishment(**c)
+                    # ruling = c.pop('决定文书号')
+                    # c = dict(c)
+                    return dict(punishment=Punishment(**c))
                 else:
                     warnings.warn('invalid type for Punishment, need a dict.')
                     return None
@@ -114,4 +121,84 @@ class Punishment(QccRequest):
             else:
                 warnings.warn('invalid type for Punishment, need a dict.')
 
+        if agency == '信用中国':
+            def cnt2(c):
+                if isinstance(c, dict):
+                    if '序号' in c.keys():
+                        del c['序号']
+                    # ruling = c.pop('决定文书号')
+                    # c = dict(c)
+                    return dict(punishment=Punishment(**c))
+                else:
+                    warnings.warn('invalid type for Punishment, need a dict.')
+                    return None
+                    pass
+            if isinstance(content, dict):
+                content['决定机关类型'] = agency
+                _ = cnt2(content)
+                if _ is not None:
+                    ps.append(_)
+                pass
+            elif isinstance(content, list):
+                for cnt in content:
+                    cnt['决定机关类型'] = agency
+                    _ = cnt2(cnt)
+                    if _ is not None:
+                        ps.append(_)
+            else:
+                warnings.warn('invalid type for Punishment, need a dict.')
+
+        if agency == '其他':
+            def cnt2(c):
+                if isinstance(c, dict):
+                    if '序号' in c.keys():
+                        del c['序号']
+                    # ruling = c.pop('决定文书号')
+                    # c = dict(c)
+                    return dict(punishment=Punishment(**c))
+                else:
+                    warnings.warn('invalid type for Punishment, need a dict.')
+                    return None
+                    pass
+            if isinstance(content, dict):
+                content['决定机关类型'] = agency
+                _ = cnt2(content)
+                if _ is not None:
+                    ps.append(_)
+                pass
+            elif isinstance(content, list):
+                for cnt in content:
+                    cnt['决定机关类型'] = agency
+                    _ = cnt2(cnt)
+                    if _ is not None:
+                        ps.append(_)
+            else:
+                warnings.warn('invalid type for Punishment, need a dict.')
+
+        if agency == '环保局':
+            def cnt2(c):
+                if isinstance(c, dict):
+                    if '序号' in c.keys():
+                        del c['序号']
+                    # ruling = c.pop('决定文书号')
+                    # c = dict(c)
+                    return dict(punishment=Punishment(**c))
+                else:
+                    warnings.warn('invalid type for Punishment, need a dict.')
+                    return None
+                    pass
+            if isinstance(content, dict):
+                content['决定机关类型'] = agency
+                _ = cnt2(content)
+                if _ is not None:
+                    ps.append(_)
+                pass
+            elif isinstance(content, list):
+                for cnt in content:
+                    cnt['决定机关类型'] = agency
+                    _ = cnt2(cnt)
+                    if _ is not None:
+                        ps.append(_)
+            else:
+                warnings.warn('invalid type for Punishment, need a dict.')
         return ps

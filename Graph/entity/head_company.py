@@ -1,21 +1,21 @@
 # encoding: utf-8
 
 """
-project = 'zlr'
-file_name = 'invested'
-author = 'Administrator'
-datetime = '2020/3/26 0026 下午 18:05'
-from = 'office desktop' 
+project = zlr(20200403备份)
+file_name = head_company
+author = Administrator
+datetime = 2020/5/8 0008 下午 16:32
+from = office desktop
 """
 import warnings
 
 from Graph.entity import QccRequest
 
 
-class Invested(QccRequest):
+class HeadCompany(QccRequest):
 
     """
-    被投资企业，对外投资对象不是某个以存在的企业时，新建一个被投资实体
+    总公司，总公司对象不是某个已存在的企业时，新建一个总公司实体
     """
 
     ATTRIBUTES = [

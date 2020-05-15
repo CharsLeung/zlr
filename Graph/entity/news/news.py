@@ -20,6 +20,9 @@ class News(QccRequest):
         ['新闻标题', 'TITLE'],
         ['新闻链接', 'URL'],
         ['来源', 'SOURCE'],
+        ['简介', 'INTRODUCTION'],
+        ['情感', 'EMOTION'],
+        ['标签', 'LABEL'],
         ['发布时间', 'RELEASE_DATE'],
     ]
 
@@ -59,15 +62,19 @@ class News(QccRequest):
 
         def f(c):
             # del c['序号']
-            _ = c.pop('新闻')
-            c['新闻标题'] = _['标题']
-            c['新闻链接'] = _['链接']
-            return c
+            # _ = c.pop('新闻')
+            if '关联对象' in c.keys():
+                c['关联对象'] = [_.strip() for _ in c.pop('关联对象').split('\n')]
+            if '标签' in c.keys():
+                c['标签'] = c['标签'] if len(c['标签']) else []
+            # c['新闻标题'] = _['标题']
+            # c['新闻链接'] = _['链接']
+            return dict(news=News(**c))
 
         if isinstance(content, dict):
-            obj.append(News(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [News(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for news content.')
         return obj

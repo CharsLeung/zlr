@@ -16,8 +16,8 @@ class License(QccRequest):
     行政许可
     """
     ATTRIBUTES = [
-        ['许可文书号', 'PERMIT_LICENSE_NUM'],
-        ['许可文件名', 'NAME'],
+        ['许可文件编号', 'PERMIT_LICENSE_NUM'],
+        ['许可文件名称', 'NAME'],
         ['许可内容', 'CONTENT'],
         ['许可机关', 'PERMIT_AGENCY'],
         ['有效期自', 'START_DATE'],
@@ -26,8 +26,8 @@ class License(QccRequest):
     ]
 
     synonyms = {
-        '许可文件编号': '许可文书号',
-        '许可文件名称': '许可文件名',
+        '许可文书号': '许可文件编号',
+        '许可文件名': '许可文件名称',
         # '处罚事由': '处罚事由',
         # '行政处罚内容': '处罚内容',
         # '决定日期': '处罚日期',
@@ -70,24 +70,30 @@ class License(QccRequest):
                 if isinstance(c, dict):
                     if '序号' in c.keys():
                         del c['序号']
-                    return License(**c)
+                    return dict(license=License(**c))
                 else:
                     warnings.warn('invalid type for Punishment, need a dict.')
                     return None
                     pass
 
             if isinstance(content, dict):
-                content['许可机关类型'] = agency
-                _ = cnt1(content)
-                if _ is not None:
-                    ps.append(_)
+                # content = content[agency]
+                if len(content):
+                    content['许可机关类型'] = agency
+                    _ = cnt1(content)
+                    if _ is not None:
+                        ps.append(_)
                 pass
             elif isinstance(content, list):
                 for cnt in content:
-                    cnt['许可机关类型'] = agency
-                    _ = cnt1(cnt)
-                    if _ is not None:
-                        ps.append(_)
+                    # if agency not in cnt.keys():
+                    #     print(cnt)
+                    # cnt = cnt[agency]
+                    if len(cnt):
+                        cnt['许可机关类型'] = agency
+                        _ = cnt1(cnt)
+                        if _ is not None:
+                            ps.append(_)
             else:
                 warnings.warn('invalid type for Punishment, need a dict.')
 
@@ -101,28 +107,32 @@ class License(QccRequest):
                         '许可文书号': c['决定文书号'],
                         '许可机关': c['许可机关'],
                         '有效期自': c['决定日期'],
-                        '许可内容': _['post链接'],
+                        '许可内容': _['内容'],
+                        '许可链接': _['链接'],
                         '许可机关类型': c['许可机关类型']
                     }
-                    # c = dict(c, **ruling)
-                    return License(**l)
+                    return dict(license=License(**l))
                 else:
                     warnings.warn('invalid type for Punishment, need a dict.')
                     return None
                     pass
 
             if isinstance(content, dict):
-                content['许可机关类型'] = agency
-                _ = cnt2(content)
-                if _ is not None:
-                    ps.append(_)
+                # content = content[agency]
+                if len(content):
+                    content['许可机关类型'] = agency
+                    _ = cnt2(content)
+                    if _ is not None:
+                        ps.append(_)
                 pass
             elif isinstance(content, list):
                 for cnt in content:
-                    cnt['许可机关类型'] = agency
-                    _ = cnt2(cnt)
-                    if _ is not None:
-                        ps.append(_)
+                    # cnt = cnt[agency]
+                    if len(cnt):
+                        cnt['许可机关类型'] = agency
+                        _ = cnt2(cnt)
+                        if _ is not None:
+                            ps.append(_)
             else:
                 warnings.warn('invalid type for Punishment, need a dict.')
 

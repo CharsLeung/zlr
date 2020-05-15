@@ -14,7 +14,7 @@ from Graph.entity import QccRequest
 class Possession(QccRequest):
 
     """
-    股权出质标的物，一般情况下出质的标的物都是企业
+    标的物，一般情况下出质的标的物都是企业
     所有, 所有权, 属地, 领地, 领土, 货
     """
 
@@ -34,6 +34,8 @@ class Possession(QccRequest):
     }
 
     primarykey = 'URL'
+
+    index = [('NAME',)]
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)

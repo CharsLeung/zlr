@@ -56,16 +56,16 @@ class App(QccRequest):
         oas = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c['证书']
             # c['证书名称'] = _['名称']
             # c['证书链接'] = _['链接']
-            return c
+            return dict(app=App(**c))
 
         if isinstance(content, dict):
-            oas.append(App(**f(content)))
+            oas.append(f(content))
         elif isinstance(content, list):
-            oas += [App(**f(c)) for c in content]
+            oas += [f(c) for c in content]
         else:
             warnings.warn('invalid type for app content.')
         return oas

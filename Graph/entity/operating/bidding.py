@@ -61,16 +61,16 @@ class Bidding(QccRequest):
         obj = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             _ = c.pop('描述')
             c['项目描述'] = _['描述']
-            c['项目链接'] = _['描述链接']
-            return c
+            c['项目链接'] = _['链接']
+            return dict(bidding=Bidding(**c))
 
         if isinstance(content, dict):
-            obj.append(Bidding(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [Bidding(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for bidding content.')
         return obj

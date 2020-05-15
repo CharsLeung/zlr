@@ -18,14 +18,14 @@ class Check(QccRequest):
     """
 
     ATTRIBUTES = [
-        ['检查实施机关', 'CHECK_AGENCY'],
+        ['实施机关', 'CHECK_AGENCY'],
         ['类型', 'TYPE'],
         ['日期', 'DATE'],
         ['结果', 'RESULT'],
     ]
 
     synonyms = {
-        # '企业': '标的名称',
+        '检查实施机关': '实施机关',
         # '链接': '标的链接'
     }
 
@@ -60,16 +60,16 @@ class Check(QccRequest):
         obj = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c.pop('描述')
             # c['项目描述'] = _['描述']
             # c['项目链接'] = _['描述链接']
-            return c
+            return dict(check=Check(**c))
 
         if isinstance(content, dict):
-            obj.append(Check(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [Check(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for check content.')
         return obj
@@ -124,16 +124,16 @@ class RandomCheck(QccRequest):
         obj = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c.pop('描述')
             # c['项目描述'] = _['描述']
             # c['项目链接'] = _['描述链接']
-            return c
+            return dict(check=RandomCheck(**c))
 
         if isinstance(content, dict):
-            obj.append(RandomCheck(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [RandomCheck(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for random-check content.')
         return obj

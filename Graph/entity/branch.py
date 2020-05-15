@@ -1,34 +1,30 @@
 # encoding: utf-8
 
 """
-project = 'zlr'
-file_name = 'invested'
-author = 'Administrator'
-datetime = '2020/3/26 0026 下午 18:05'
-from = 'office desktop' 
+project = zlr(20200403备份)
+file_name = branch
+author = Administrator
+datetime = 2020/5/8 0008 下午 16:18
+from = office desktop
 """
 import warnings
 
 from Graph.entity import QccRequest
 
 
-class Invested(QccRequest):
+class Branch(QccRequest):
 
     """
-    被投资企业，对外投资对象不是某个以存在的企业时，新建一个被投资实体
+    分支机构，分支机构对象不是某个已存在的企业时，新建一个分支机构实体
     """
 
     ATTRIBUTES = [
         ['名称', 'NAME'],
         ['链接', 'URL'],
-        ['注册资本(金额)', 'REGISTERED_CAPITAL_AMOUNT'],
-        ['注册资本(单位)', 'REGISTERED_CAPITAL_UNIT'],
-        ['成立日期', 'ESTABLISHMENT_DATE'],
-        ['经营状态', 'OPERATING_STATUS']
     ]
 
     synonyms = {
-        '状态': '经营状态',
+        # '状态': '经营状态',
         # '认缴出资额_万元': '认缴出资额',
         # '链接': '股东链接'
     }

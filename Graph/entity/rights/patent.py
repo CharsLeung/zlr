@@ -57,16 +57,16 @@ class Patent(QccRequest):
         obj = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             _ = c.pop('专利')
             c['专利名称'] = _['名称']
             c['专利链接'] = _['链接']
-            return c
+            return dict(patent=Patent(**c))
 
         if isinstance(content, dict):
-            obj.append(Patent(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [Patent(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for patent content.')
         return obj

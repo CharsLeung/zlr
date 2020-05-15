@@ -26,6 +26,13 @@ class Certificate(QccRequest):
         ['截止日期', 'END_DATE'],
     ]
 
+    synonyms = {
+        '资质证书号': '证书编号',
+        '资质类型': '证书类型',
+        '资质名称': '证书名称',
+        '证书有效期': '截止日期'
+    }
+
     primarykey = 'CTF_NUM'
 
     def __init__(self, **kwargs):
@@ -53,16 +60,16 @@ class Certificate(QccRequest):
         ctfs = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             _ = c.pop('证书')
             c['证书名称'] = _['名称']
-            c['证书链接'] = _['post链接']
-            return c
+            c['证书链接'] = _['链接']
+            return dict(certificate=Certificate(**c))
 
         if isinstance(content, dict):
-            ctfs.append(Certificate(**f(content)))
+            ctfs.append(f(content))
         elif isinstance(content, list):
-            ctfs += [Certificate(**f(c)) for c in content]
+            ctfs += [f(c) for c in content]
         else:
             warnings.warn('invalid type for Certificate content.')
         return ctfs

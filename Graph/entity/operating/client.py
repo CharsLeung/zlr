@@ -18,8 +18,8 @@ class Client(QccRequest):
     """
 
     ATTRIBUTES = [
-        ['客户名称', 'NAME'],
-        ['客户链接', 'URL'],
+        ['名称', 'NAME'],
+        ['链接', 'URL'],
         ['销售占比', 'PROPORTION'],
         ['销售金额', 'AMOUNT'],
         ['报告期', 'REPORT_DATE'],
@@ -32,6 +32,8 @@ class Client(QccRequest):
     }
 
     primarykey = 'URL'
+
+    index = [('NAME',)]
 
     def __init__(self, **kwargs):
         QccRequest.__init__(self)
@@ -61,17 +63,25 @@ class Client(QccRequest):
         """
         obj = []
 
-        def f(c):
-            del c['序号']
-            _ = c.pop('客户')
-            c['客户名称'] = _['名称']
-            c['客户链接'] = _['url']
-            return c
+        def f(_):
+            c = _.pop('客户')
+            if '销售金额' in _.keys():
+                _ = dict(_, **cls.get_format_amount(
+                    '销售金额', _.pop('销售金额')
+                ))
+            return dict(client=Client(**c), **_)
+
+        # def f(c):
+        #     # del c['序号']
+        #     _ = c.pop('客户')
+        #     c['客户名称'] = _['名称']
+        #     c['客户链接'] = _['链接']
+        #     return c
 
         if isinstance(content, dict):
-            obj.append(Client(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [Client(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for client content.')
         return obj

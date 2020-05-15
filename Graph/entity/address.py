@@ -33,7 +33,7 @@ class Address(QccRequest):
     def __init__(self, address=''):
         QccRequest.__init__(self)
         self.BaseAttributes = {'ADDRESS': str(address).replace(' ', '')}
-        self.__split_levels__()
+        # self.__split_levels__()
         pass
 
     def __split_levels__(self):

@@ -11,25 +11,20 @@ import warnings
 from Graph.entity import QccRequest
 
 
-class Recruitment(QccRequest):
+class Position(QccRequest):
 
     """
-    招聘信息
+    职位
     """
 
     ATTRIBUTES = [
-        ['招聘职位', 'POSITION'],
-        ['招聘链接', 'URL'],
-        ['月薪', 'SALARY'],
-        ['学历', 'EDUCATION'],
-        ['经验', 'EXPERIENCE'],
-        ['所在城市', 'CITY'],
-        ['发布日期', 'RELEASE_DATE']
+        ['职位', 'POSITION'],
+        ['链接', 'URL'],
     ]
 
     synonyms = {
-        # '企业': '标的名称',
-        # '链接': '标的链接'
+        '招聘职位': '职位',
+        '招聘链接': '职位'
     }
 
     primarykey = 'POSITION'
@@ -63,16 +58,14 @@ class Recruitment(QccRequest):
         obj = []
 
         def f(c):
-            del c['序号']
-            _ = c.pop('招聘职位')
-            c['招聘职位'] = _['招聘职位']
-            c['招聘链接'] = _['招聘链接']
-            return c
+            # del c['序号']
+            _ = c.pop('职位')
+            return dict(position=Position(**_), **c)
 
         if isinstance(content, dict):
-            obj.append(Recruitment(**f(content)))
+            obj.append(f(content))
         elif isinstance(content, list):
-            obj += [Recruitment(**f(c)) for c in content]
+            obj += [f(c) for c in content]
         else:
             warnings.warn('invalid type for recruitment content.')
         return obj

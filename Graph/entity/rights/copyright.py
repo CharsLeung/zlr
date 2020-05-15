@@ -22,9 +22,13 @@ class WorkCopyRight(QccRequest):
         ['作品名称', 'NAME'],
         ['登记日期', 'CR_DATE'],
         ['登记类别', 'CR_TYPE'],
-        # ['首次发表日期', 'START_DATE'],
+        ['发布日期', 'RELEASE_DATE'],
         # ['创作完成日期', 'END_DATE'],
     ]
+
+    synonyms = {
+        '首次发表日期': '发布日期'
+    }
 
     primarykey = 'CR_NUM'
 
@@ -54,16 +58,16 @@ class WorkCopyRight(QccRequest):
         crs = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c['证书']
             # c['证书名称'] = _['名称']
             # c['证书链接'] = _['链接']
-            return c
+            return dict(workcopyright=WorkCopyRight(**c))
 
         if isinstance(content, dict):
-            crs.append(WorkCopyRight(**f(content)))
+            crs.append(f(content))
         elif isinstance(content, list):
-            crs += [WorkCopyRight(**f(c)) for c in content]
+            crs += [f(c) for c in content]
         else:
             warnings.warn('invalid type for work copy right content.')
         return crs
@@ -117,16 +121,16 @@ class SoftCopyRight(QccRequest):
         crs = []
 
         def f(c):
-            del c['序号']
+            # del c['序号']
             # _ = c['证书']
             # c['证书名称'] = _['名称']
             # c['证书链接'] = _['链接']
-            return c
+            return dict(softcopyright=SoftCopyRight(**c))
 
         if isinstance(content, dict):
-            crs.append(SoftCopyRight(**f(content)))
+            crs.append(f(content))
         elif isinstance(content, list):
-            crs += [SoftCopyRight(**f(c)) for c in content]
+            crs += [f(c) for c in content]
         else:
             warnings.warn('invalid type for soft copy right content.')
         return crs

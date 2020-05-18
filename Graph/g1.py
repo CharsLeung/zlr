@@ -47,7 +47,7 @@ nm = NodeMatcher(graph)
 # _ = nm.match('Enterprise').where(
 #     '_.URL="{}"'.format()
 # ).first()
-_ = graph.run('match (n:Enterprise{URL:"%s"}) return n limit 1' % url).current
+_ = graph.run('match (n:Enterprise) return n.PAID_UP_CAPITAL_AMOUNT, n.PAID_UP_CAPITAL_UNIT').to_data_frame()
 # r = graph.run('match (e:Enterprise)-[:HAVE]-(em:Email) where e.NAME="重庆数宜信信用管理有限公司" return em.EMAIL')
 # 1.
 # idx = graph.schema.get_indexes('Enterprise')

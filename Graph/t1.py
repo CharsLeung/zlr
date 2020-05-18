@@ -12,17 +12,24 @@ from Graph.relationship import relationships
 # ets = entities()
 # for k, v in zip(ets.keys(), ets.values()):
 #     ats = v.ATTRIBUTES
-#     # print(k)
-#     print('"{}":'.format(k), '{')
+#     print('{}({})'.format(k, str(v.__doc__).strip().replace('\n', '')))
+#     # print('"{}()":'.format(k), '{')
 #     # print('"{}":"{}",'.format(k, str(v.__doc__).replace('\n', '')).replace(' ', ''))
 #     for a in ats:
 #         # if 'DATE' in a[1]:
-#             print('     "{}":"{}",'.format(a[1], a[0]))
-#     print('},')
+#             print('     |_ {}: {}'.format(a[1], a[0]))
+#     # print('},')
 #     pass
-# rsp = relationships()
-# for k, v in zip(rsp.keys(), rsp.values()):
-#     print('"{}":"{}",'.format(v.name, str(v.__doc__).replace('\n', '')).replace(' ', ''))
+rsp = relationships()
+for k, v in zip(rsp.keys(), rsp.values()):
+    print('{}({})'.format(v.name, str(v.__doc__).strip().replace('\n', '')).replace(' ', ''))
+    try:
+        ats = v.ATTRIBUTES
+        for a in ats:
+            # if 'DATE' in a[1]:
+                print('     |_ {}: {}'.format(a[1], a[0]))
+    except Exception:
+        pass
 nds = {
     "Address":"地址",
     "Email":"邮箱",
@@ -62,12 +69,3 @@ nds = {
 }
 # for k, v in zip(nds.keys(), nds.values()):
 #     print('"{}":"{}",'.format(v, k))
-
-class A:
-
-    attr = {'A': 1, 'B': 2}
-
-    def __getitem__(self, key):
-        return self.attr[key]
-
-print(A()['A'])

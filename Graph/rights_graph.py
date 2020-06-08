@@ -7,6 +7,8 @@ author = Administrator
 datetime = 2020/4/3 0003 上午 10:27
 from = office desktop
 """
+import re
+import time
 import datetime as dt
 from Graph import BaseGraph
 from Calf.data import BaseModel
@@ -27,8 +29,9 @@ class RightsGraph(BaseGraph):
         BaseGraph.__init__(self)
         self.base = BaseModel(
             tn='qcc.1.1',
-            location='gcxy',
-            dbname='data')
+            # location='gcxy',
+            # dbname='data'
+        )
         pass
 
     def create_index_and_constraint(self):
@@ -54,9 +57,9 @@ class RightsGraph(BaseGraph):
         index = {}
         for l in used_entity:
             constraint[l] = [entities(l).primarykey]
-            # idx = entities(l).index
-            # if len(idx):
-            #     index[l] = idx
+            idx = entities(l).index
+            if len(idx):
+                index[l] = idx
         self.add_index_and_constraint(index, constraint)
         pass
 
@@ -67,17 +70,17 @@ class RightsGraph(BaseGraph):
         """
         rts = self.base.query(
             sql={'metaModel': '知识产权'},
-            limit=100,
+            # limit=100,
+            skip=79175+7909,
             no_cursor_timeout=True)
         i, k = 0, 0
         eg = EtpGraph()
         # etp = Enterprise()
         etp_count = rts.count()
         relationships = []
+        s_t = time.time()
         for r in rts:
             k += 1
-            # if k < 43500:
-            #     continue
             # TODO(leung): 这里要注意，基本信息以外的模块中的url确定不了公司
             etp_n = self.match_node(
                 *legal,
@@ -97,9 +100,9 @@ class RightsGraph(BaseGraph):
                     pass
                 else:
                     # 没有这个公司的信息，那就创建一个信息不全的公司
-                    etp = Related()
-                    etp['NAME'] = r['name']
-                    etp['URL'] = r['url']
+                    etp = Related(**{'名称': r['name'], '链接': r['url']})
+                    # etp['NAME'] = r['name']
+                    # etp['URL'] = r['url']
                     etp_n = self.get_neo_node(etp)
                     pass
                 pass
@@ -225,17 +228,23 @@ class RightsGraph(BaseGraph):
                 pass
             if len(relationships) > 1000:
                 i += 1
+                sp = int(time.time() - s_t)
+                s_t = time.time()
                 self.graph_merge_relationships(relationships)
+                if not self.index_and_constraint_statue:
+                    self.create_index_and_constraint()
                 print(SuccessMessage('{}:success merge relationships to database '
-                                     'round {} and deal {}/{} enterprise,and'
-                                     ' merge {} relationships.'.format(
-                    dt.datetime.now(), i, k, etp_count, len(relationships)
+                                     'round {} and deal {}/{} enterprise and spend {} '
+                                     'seconds,and merge {} relationships.'.format(
+                    dt.datetime.now(), i, k, etp_count, sp, len(relationships)
                 )))
                 relationships.clear()
-                return
+                # return
         if len(relationships):
             i += 1
             self.graph_merge_relationships(relationships)
+            if not self.index_and_constraint_statue:
+                self.create_index_and_constraint()
             print(SuccessMessage('{}:success merge relationships to database '
                                  'round {} and deal {}/{} enterprise,and'
                                  ' merge {} relationships.'.format(
@@ -244,6 +253,197 @@ class RightsGraph(BaseGraph):
             relationships.clear()
             pass
 
+    def get_all_nodes_and_relationships_from_enterprise(self, etp):
+        etp_n = Enterprise(URL=etp['url'], NAME=etp['name'])
+        etp_n = self.get_neo_node(etp_n)
+        if etp_n is None:
+            return [], []
+        nodes, relationships = [], []
+        nodes.append(etp_n)
 
-# rg = RightsGraph()
-# rg.create_all_relationship()
+        if '网站信息' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['网站信息'])
+            webs = Website.create_from_dict(data)
+            for web in webs:
+                w = web.pop('website')
+                w_n = self.get_neo_node(w)
+                if w_n is not None:
+                    nodes.append(w_n)
+                    relationships.append(
+                        Have(etp_n, w_n, **web)
+                    )
+            pass
+
+        if '证书信息' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['证书信息'])
+            ctfs = Certificate.create_from_dict(data)
+            for ctf in ctfs:
+                c = ctf.pop('certificate')
+                c_n = self.get_neo_node(c)
+                if c_n is not None:
+                    nodes.append(c_n)
+                    relationships.append(
+                        Have(etp_n, c_n, **ctf)
+                    )
+            pass
+
+        if '专利信息' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['专利信息'])
+            pats = Patent.create_from_dict(data)
+            for pat in pats:
+                p = pat.pop('patent')
+                p_n = self.get_neo_node(p)
+                if p_n is not None:
+                    nodes.append(p_n)
+                    relationships.append(
+                        Have(etp_n, p_n, **pat)
+                    )
+            pass
+
+        if '商标信息' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['商标信息'])
+            tms = Trademark.create_from_dict(data)
+            for tm in tms:
+                t = tm.pop('trademark')
+                t_n = self.get_neo_node(t)
+                if t_n is not None:
+                    nodes.append(t_n)
+                    relationships.append(
+                        Have(etp_n, t_n, **tm)
+                    )
+            pass
+
+        if '软件著作权' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['软件著作权'])
+            scrs = SoftCopyRight.create_from_dict(data)
+            for scr in scrs:
+                s = scr.pop('softcopyright')
+                s_n = self.get_neo_node(s)
+                if s_n is not None:
+                    nodes.append(s_n)
+                    relationships.append(
+                        Have(etp_n, s_n, **scr)
+                    )
+            pass
+
+        if '作品著作权' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['作品著作权'])
+            wcrs = WorkCopyRight.create_from_dict(data)
+            for wcr in wcrs:
+                w = wcr.pop('workcopyright')
+                w_n = self.get_neo_node(w)
+                if w_n is not None:
+                    nodes.append(w_n)
+                    relationships.append(
+                        Have(etp_n, w_n, **wcr)
+                    )
+            pass
+
+        if '微博' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['微博'])
+            wbs = Weibo.create_from_dict(data)
+            for wb in wbs:
+                w = wb.pop('weibo')
+                w_n = self.get_neo_node(w)
+                if w_n is not None:
+                    nodes.append(w_n)
+                    relationships.append(
+                        Have(etp_n, w_n, **wb)
+                    )
+            pass
+
+        if '微信公众号' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['微信公众号'])
+            oas = OfficialAccount.create_from_dict(data)
+            for oa in oas:
+                woa = oa.pop('WeChat')
+                woa_n = self.get_neo_node(woa)
+                if woa_n is not None:
+                    nodes.append(woa_n)
+                    relationships.append(
+                        Have(etp_n, woa_n, **oa)
+                    )
+            pass
+
+        if '小程序' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['小程序'])
+            alts = Applets.create_from_dict(data)
+            for alt in alts:
+                a = alt.pop('applets')
+                a_n = self.get_neo_node(a)
+                if a_n is not None:
+                    nodes.append(a_n)
+                    relationships.append(
+                        Have(etp_n, a_n, **alt)
+                    )
+            pass
+
+        if 'APP' in etp['content'].keys():
+            data = self.get_format_dict(etp['content']['APP'])
+            aps = App.create_from_dict(data)
+            for ap in aps:
+                a = ap.pop('app')
+                a_n = self.get_neo_node(a)
+                if a_n is not None:
+                    nodes.append(a_n)
+                    relationships.append(
+                        Have(etp_n, a_n, **ap)
+                    )
+            pass
+        return nodes, relationships
+
+    def get_all_nodes_and_relationships(self):
+        enterprises = self.base.query(
+            sql={
+                'metaModel': '知识产权',
+                # 'name': '重庆轩烽建材有限公司'
+            },
+            limit=1000,
+            # skip=2000,
+            no_cursor_timeout=True)
+        i, j = 0, 0
+        etp_count = enterprises.count()
+        nodes, relationships = {}, {}
+        unique_code_pattern = re.compile('(?<=unique=)\w{32}')
+
+        def getUniqueCode(url):
+            _uc_ = re.search(unique_code_pattern, url)
+            if _uc_ is not None:
+                return _uc_.group(0)
+            else:
+                return None
+
+        for ep in enterprises:
+            i += 1
+            uc = getUniqueCode(ep['url'])
+            if uc is None:
+                continue
+            ep['url'] = '/firm_' + uc + '.html'
+            nds, rps = self.get_all_nodes_and_relationships_from_enterprise(ep)
+            for _nds_ in nds:
+                if _nds_ is None:
+                    continue
+                # _nds_ = _nds_.to_dict()
+                label = list(_nds_.labels)[0]
+                _nds_ = dict(label=label, **_nds_)
+                if _nds_['label'] in nodes.keys():
+                    nodes[_nds_['label']].append(_nds_)
+                else:
+                    nodes[_nds_['label']] = [_nds_]
+                pass
+            for _rps_ in rps:
+                _rps_ = _rps_.to_dict()
+                if _rps_['label'] in relationships.keys():
+                    relationships[_rps_['label']].append(_rps_)
+                else:
+                    relationships[_rps_['label']] = [_rps_]
+                pass
+            if i % 1000 == 0:
+                j += 1
+                print(SuccessMessage(
+                    '{}:success merge nodes to database '
+                    'round {} and deal {}/{} enterprise'
+                    ''.format(dt.datetime.now(), i, j, etp_count)
+                ))
+            pass
+        return nodes, relationships

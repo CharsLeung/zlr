@@ -9,10 +9,10 @@ from = 'office desktop'
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Email(QccRequest):
+class Email(BaseEntity):
     """
     邮箱
     """
@@ -29,7 +29,7 @@ class Email(QccRequest):
     primarykey = 'EMAIL'
 
     def __init__(self, email=None, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         self.BaseAttributes['EMAIL'] = email if email is not None else None
         if len(kwargs):
             sks = self.synonyms.keys()

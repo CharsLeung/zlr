@@ -10,14 +10,16 @@ IDE = PyCharm
 import re
 import copy
 import hashlib
+import numpy as np
+import pandas as pd
 
+from Calf.net.prpcrypt import Prpcrypt
 from Graph.entity import NeoNode
 from Graph.exception import ExceptionInfo
 
 
-class QccRequest:
-
-    primarykey = None   # 唯一键
+class BaseEntity:
+    primarykey = None  # 唯一键
 
     index = []  # 索引
 
@@ -25,46 +27,73 @@ class QccRequest:
 
     synonyms = {}
 
-    unique_code_pattern = re.compile('/[a-zA-Z_]+_\w{32}.html')
+    cipher = Prpcrypt('syxsyx')
+    unique_code_pattern = re.compile('(?<=/)[a-zA-Z]+_\w{32}(?=\.)')
 
-    def __init__(self, ReturnString=None):
-        self.__load_content__(ReturnString)
+    def __init__(self, data=None):
+        self.__load_content__(data)
         pass
 
-    def __load_content__(self, ReturnString):
+    def __load_content__(self, data):
         self.BaseAttributes = {}
-        if ReturnString is not None:
-            if isinstance(ReturnString, dict):
+        if data is not None:
+            if isinstance(data, dict):
                 pass
             else:
                 try:
-                    ReturnString = eval(ReturnString)
+                    data = eval(data)
                 except Exception:
-                    print(ReturnString)
+                    print(data)
                     raise TypeError('not json object')
-            ks = ReturnString.keys()
-            self.name = ReturnString['name'] if 'name' in ks else None
-            self.metaModel = ReturnString['metaModel'] if 'metaModel' in ks else None
-            self.url = ReturnString['url'] if 'url' in ks else None
-            self.headers = ReturnString['headers'] if 'headers' in ks else None
-            self.get = ReturnString['get'] if 'get' in ks else None
-            self.update_date = ReturnString['date'] if 'date' in ks else None
-            # self.id = ReturnString['url'] if 'url' in ks else None
-            self.content = ReturnString['content'] if 'content' in ks else None
+            ks = data.keys()
+            self.name = data['name'] if 'name' in ks else None
+            self.metaModel = data['metaModel'] if 'metaModel' in ks else None
+            self.url = data['url'] if 'url' in ks else None
+            # self.headers = data['headers'] if 'headers' in ks else None
+            # self.get = data['get'] if 'get' in ks else None
+            self.update_date = data['date'] if 'date' in ks else None
+            # self.id = data['url'] if 'url' in ks else None
+            self.content = data['content'] if 'content' in ks else None
         pass
 
-    def reload_content(self, ReturnString):
-        self.__load_content__(ReturnString)
+    def reload_content(self, data):
+        self.__load_content__(data)
         return self
         pass
 
     def __getitem__(self, key):
         return self.BaseAttributes[key]
 
-    def __setitem__(self, key, value):
-        self.BaseAttributes[key] = value
+    # def __setitem__(self, key, value):
+    #     self.BaseAttributes[key] = value
 
-    def content_keys(self):
+    def to_dict(self):
+        return dict(label=self.label, **self.BaseAttributes)
+
+    def to_pandas(self, nodes):
+        nodes = pd.DataFrame(nodes)
+        nodes = nodes.dropna(subset=[self.primarykey], inplace=True)
+        return nodes
+        pass
+
+    def getImportCSV(self, nodes):
+        dtypes = dict(nodes.dtypes)
+        names = {}
+        for k, v in zip(dtypes.keys(), dtypes.values()):
+            if k == self.primarykey:
+                names[k] = '{}:ID'.format(k)
+                continue
+            if k == 'label':
+                names[k] = ':{}'.format('LABEL')
+                continue
+            if 'int' in v.name:
+                names[k] = '{}:{}'.format(k, 'int')
+            elif 'float' in v.name:
+                names[k] = '{}:{}'.format(k, 'float')
+            else:
+                pass
+        nodes = nodes.rename(columns=names)
+        return nodes
         pass
 
     def get_englishAttribute_by_chinese(self, name):
@@ -105,22 +134,15 @@ class QccRequest:
         else:
             return None
 
-    @staticmethod
-    def parser_url(url):
+    @classmethod
+    def parser_url(cls, url):
         """
         只针对公司、个人主页的url
         :param url:
         :return:
         """
         try:
-            # url = QccRequest.format_url(url)
-            _ = re.search(QccRequest.unique_code_pattern, url)
-            if _ is not None:
-                # print('"{}",'.format(_.group(0)))'https://www.qcc.com' +
-                _ = _.group(0)
-            else:
-                _ = url
-            return _
+            return cls.getUniqueCode(url) if url is not None else url
         except Exception as e:
             # ExceptionInfo(e)
             # print('invalid url({}) for person or enterprise.'.format(url))
@@ -161,6 +183,18 @@ class QccRequest:
             self.label, attribute if attribute is not None else self.primarykey
         )
 
+    def get_create_node_cypher(self):
+        """
+
+        :return:
+        """
+        attr = []
+        for k, v in zip(self.BaseAttributes.keys(),
+                        self.BaseAttributes.values()):
+            # attr.append('{}: {}'.format())
+            pass
+        cp = 'CREATE (:%s {%s})' % (self.label, '')
+
     @staticmethod
     def get_format_amount(k, v):
         """
@@ -195,7 +229,66 @@ class QccRequest:
             return []
 
     @staticmethod
-    def get_entity_unique_code(data):
-        return '/syx_{}'.format(hashlib.md5(
-            data.encode("utf8")).hexdigest())
+    def getEntityUniqueCodeSYX(data, flag):
+        return '{}_{}'.format(flag, BaseEntity.cipher.encrypt(data))
 
+    @staticmethod
+    def getHashValue(data):
+        return hashlib.md5(data.encode("utf8")).hexdigest()
+
+    @staticmethod
+    def getEntityUniqueCodeQCC(data, flag):
+        return '{}_{}'.format(flag, BaseEntity.cipher.decrypt(data))
+
+    @staticmethod
+    def getUniqueCode(url):
+        if url is not None and isinstance(url, str):
+            _ = re.search(BaseEntity.unique_code_pattern, url)
+            if _ is not None:
+                return _.group(0)
+            else:
+                return None
+        else:
+            return url
+
+    @staticmethod
+    def getTypeForEtpOrPsr(uniqueCode):
+        """
+        根据传入的这个标签，判断这是一个企业还是一个人
+        :param uniqueCode: qcc的KeyNo或者其连接
+        :return:无法判断 0；企业 1；  人 2；
+        """
+        # tp = BaseEntity.getUniqueCode(label)
+        if uniqueCode is not None:
+            if uniqueCode[0] == 'p':
+                return 2
+            else:
+                return 1
+        else:
+            return 0
+
+    def isPerson(self, url=None):
+        if url is not None:
+            uc = url
+        elif 'URL' in self.BaseAttributes.keys():
+            uc = self.BaseAttributes['URL']
+        else:
+            return False
+            # uc = self.getUniqueCode(url)
+        if uc is not None:
+            if self.getTypeForEtpOrPsr(uc.split('_')[1]) == 2:
+                return True
+        return False
+
+    def isEnterprise(self, url=None):
+        if url is not None:
+            uc = url
+        elif 'URL' in self.BaseAttributes.keys():
+            uc = self.BaseAttributes['URL']
+        else:
+            return False
+        # uc = self.getUniqueCode(uc)
+        if uc is not None:
+            if self.getTypeForEtpOrPsr(uc.split('_')[1]) == 1:
+                return True
+        return False

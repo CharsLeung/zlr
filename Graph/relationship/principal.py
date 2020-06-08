@@ -1,19 +1,20 @@
 # encoding: utf-8
 
 """
-project = 'zlr'
-file_name = 'be_in_office'
-author = 'Administrator'
-datetime = '2020/3/23 0023 下午 15:21'
-from = 'office desktop' 
+@project = zlr(20200403备份)
+@file_name = principal
+@author = liang jian
+@email = leungjain@qq.com
+@datetime = 2020/6/2 0002 下午 16:06
+@from = office desktop
 """
 from Graph.relationship import Base
 
 
-class BeInOffice(Base):
+class Principal(Base):
 
     """
-    任职于、就职于
+    负责人
     """
 
     def __init__(self, person=None, enterprise=None, **kwargs):

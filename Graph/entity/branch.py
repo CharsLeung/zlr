@@ -9,10 +9,10 @@ from = office desktop
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Branch(QccRequest):
+class Branch(BaseEntity):
 
     """
     分支机构，分支机构对象不是某个已存在的企业时，新建一个分支机构实体
@@ -34,7 +34,7 @@ class Branch(QccRequest):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

@@ -9,11 +9,11 @@ from = office desktop
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 from Graph.data.utils import get_keys
 
 
-class Ruling(QccRequest):
+class Judgment(BaseEntity):
     """
     裁决文书，案号作为id
     """
@@ -37,7 +37,7 @@ class Ruling(QccRequest):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -69,12 +69,12 @@ class Ruling(QccRequest):
         if isinstance(content, dict):
             _ = cls.split_case_identity(content)
             ivs = _.pop('涉案对象')
-            rls.append([Ruling(**_), ivs])
+            rls.append([Judgment(**_), ivs])
         elif isinstance(content, list):
             for c in content:
                 _ = cls.split_case_identity(c)
                 ivs = _.pop('涉案对象')
-                rls.append([Ruling(**_), ivs])
+                rls.append([Judgment(**_), ivs])
         else:
             warnings.warn('invalid type for Ruling content.')
 
@@ -112,7 +112,7 @@ class Ruling(QccRequest):
         inv = []
         for i in range(len(_2)):
             c = _1[i]
-            c.append(QccRequest.parser_url(_2[i]))
+            c.append(BaseEntity.parser_url(_2[i]))
             if len(c) == 3:
                 inv.append(c)
             else:
@@ -125,7 +125,7 @@ class Ruling(QccRequest):
         pass
 
 
-class RulingText(QccRequest):
+class JudgmentDoc(BaseEntity):
     """
     裁决文书全文
     """
@@ -150,7 +150,7 @@ class RulingText(QccRequest):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -194,5 +194,5 @@ class RulingText(QccRequest):
                 else:
                     r[k] = v
         r = dict(r, **kwargs)
-        return RulingText(**r)
+        return JudgmentDoc(**r)
         pass

@@ -9,10 +9,10 @@ from = 'office desktop'
 """
 import warnings
 
-from Graph.entity import QccRequest, NeoNode
+from Graph.entity import BaseEntity, NeoNode
 
 
-class ShareHolder(QccRequest):
+class ShareHolder(BaseEntity):
     """
     股东
     """
@@ -36,7 +36,7 @@ class ShareHolder(QccRequest):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

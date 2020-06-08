@@ -9,10 +9,10 @@ from = 'office desktop'
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Executed(QccRequest):
+class Enforcement(BaseEntity):
     """
     被执行人
     """
@@ -33,7 +33,7 @@ class Executed(QccRequest):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -67,7 +67,7 @@ class Executed(QccRequest):
             c = dict(c, **cls.get_format_amount(
                 '执行标的', c.pop('执行标的')
             ))
-            return dict(executed=Executed(**c))
+            return dict(executed=Enforcement(**c))
             pass
         if isinstance(content, dict):
             eps.append(f(content))
@@ -80,7 +80,7 @@ class Executed(QccRequest):
         return eps
 
 
-class SXExecuted(QccRequest):
+class SXEnforcement(BaseEntity):
     """
     失信被执行人
     """
@@ -101,7 +101,7 @@ class SXExecuted(QccRequest):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -140,7 +140,7 @@ class SXExecuted(QccRequest):
             #     '执行法院': c['发布日期'],
             #     '履行情况': c['立案日期']
             # }
-            return dict(sxexecuted=SXExecuted(**c))
+            return dict(sxexecuted=Enforcement(**c))
             pass
 
         if isinstance(content, dict):

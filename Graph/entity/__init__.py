@@ -13,22 +13,23 @@ ENTITY_CATEGORY = {
     'ENTERPRISE': 1,
 }
 from py2neo import Node as NeoNode
-from Graph.entity.base import QccRequest
+from Graph.entity.base import BaseEntity
 from Graph.entity.related import Related
 from Graph.entity.address import Address
-from Graph.entity.email import Email
+from Graph.entity.mail import Email
 from Graph.entity.telephone import Telephone
 from Graph.entity.person import Person
 from Graph.entity.holder import ShareHolder
 from Graph.entity.construction_project import ConstructionProject
-from Graph.entity.justice.case import JusticeCase
-from Graph.entity.justice.ruling import Ruling, RulingText
+from Graph.entity.justice.case import JudicialCase, RegisterCase, FinalCase
+from Graph.entity.justice.judgment import Judgment, JudgmentDoc
 from Graph.entity.justice.punishment import Punishment
 from Graph.entity.justice.involveder import Involveder
 from Graph.entity.justice.possession import Possession
-from Graph.entity.justice.executed import Executed, SXExecuted
+from Graph.entity.justice.enforcement import Enforcement, SXEnforcement
 from Graph.entity.justice.limitorder import LimitOrder
 from Graph.entity.justice.stockfreeze import StockFreeze
+from Graph.entity.justice.announce import CourtAnnounce, OpenAnnounce, DeliveryAnnounce
 from Graph.entity.invested import Invested
 from Graph.entity.branch import Branch
 from Graph.entity.head_company import HeadCompany
@@ -57,7 +58,7 @@ from Graph.entity.enterprise import Enterprise
 
 def entities(label=None):
     ets = {
-        'QccRequest': QccRequest(),
+        'BaseEntity': BaseEntity(),
         'Related': Related(),
         'Address': Address(),
         'Email': Email(),
@@ -66,16 +67,21 @@ def entities(label=None):
         'Person': Person(),
         'ShareHolder': ShareHolder(),
         'ConstructionProject': ConstructionProject(),
-        'JusticeCase': JusticeCase(),
-        'Ruling': Ruling(),
-        'RulingText': RulingText(),
+        'JudicialCase': JudicialCase(),
+        'RegisterCase': RegisterCase(),
+        'FinalCase': FinalCase(),
+        'Judgment': Judgment(),
+        'JudgmentDoc': JudgmentDoc(),
         'Punishment': Punishment(),
         'Involveder': Involveder(),
         'Possession': Possession(),
-        'Executed': Executed(),
-        'SXExecuted': SXExecuted(),
+        'Enforcement': Enforcement(),
+        'SXEnforcement': SXEnforcement(),
         'LimitOrder': LimitOrder(),
         'StockFreeze': StockFreeze(),
+        'CourtAnnounce': CourtAnnounce(),
+        'OpenAnnounce': OpenAnnounce(),
+        'DeliveryAnnounce': DeliveryAnnounce(),
         'Invested': Invested(),
         'Branch': Branch(),
         'HeadCompany': HeadCompany(),
@@ -113,25 +119,25 @@ def entities(label=None):
 # 可能是企业、社会组织等法人对象的实体
 legal = [
     'Enterprise',
-    'ShareHolder',
-    'Involveder',
+    # 'ShareHolder',
+    # 'Involveder',
     'Related',
-    'Invested',
+    # 'Invested',
     # 'Client',
     # 'Supplier',
     # 'Executed',
     # 'SXExecuted',
-    'Branch',
-    'HeadCompany'
+    # 'Branch',
+    # 'HeadCompany'
     # 'Possession',
 ]
 
 # 可能是自然人对象的实体
 person = [
     'Person',
-    'ShareHolder',
-    'Involveder',
+    # 'ShareHolder',
+    # 'Involveder',
     'Related',
-    'Executed',
-    'SXExecuted',
+    # 'Executed',
+    # 'SXExecuted',
 ]

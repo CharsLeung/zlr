@@ -9,10 +9,10 @@ from = office desktop
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class WorkCopyRight(QccRequest):
+class WorkCopyRight(BaseEntity):
     """
     作品著作权，证书编号作为id属性
     """
@@ -33,7 +33,7 @@ class WorkCopyRight(QccRequest):
     primarykey = 'CR_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -73,7 +73,7 @@ class WorkCopyRight(QccRequest):
         return crs
 
 
-class SoftCopyRight(QccRequest):
+class SoftCopyRight(BaseEntity):
     """
     软件著作权，登记号作为id属性
     """
@@ -96,7 +96,7 @@ class SoftCopyRight(QccRequest):
     primarykey = 'CR_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

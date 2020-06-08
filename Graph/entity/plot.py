@@ -8,10 +8,10 @@ datetime = 2020/5/11 0011 上午 11:22
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Plot(QccRequest):
+class Plot(BaseEntity):
 
     """
     地块
@@ -36,7 +36,7 @@ class Plot(QccRequest):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

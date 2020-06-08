@@ -8,10 +8,10 @@ datetime = 2020/5/14 0014 下午 15:26
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class LimitOrder(QccRequest):
+class LimitOrder(BaseEntity):
 
     """
     限消令
@@ -35,7 +35,7 @@ class LimitOrder(QccRequest):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

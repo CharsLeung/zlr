@@ -1,21 +1,23 @@
 # encoding: utf-8
 
 """
-project = 'zlr'
-file_name = 'be_in_office'
+project = 'Spider'
+file_name = 'legal_representative'
 author = 'Administrator'
-datetime = '2020/3/23 0023 下午 15:21'
-from = 'office desktop' 
+datetime = '2020-03-19 12:45'
+IDE = PyCharm
 """
 from Graph.relationship import Base
 
 
-class BeInOffice(Base):
+class LegalRep(Base):
 
     """
-    任职于、就职于
+    法人代表
     """
 
     def __init__(self, person=None, enterprise=None, **kwargs):
         Base.__init__(self, person, enterprise, **kwargs)
         pass
+
+

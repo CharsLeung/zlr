@@ -8,10 +8,10 @@ datetime = 2020/4/1 0001 下午 15:42
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Possession(QccRequest):
+class Possession(BaseEntity):
 
     """
     标的物，一般情况下出质的标的物都是企业
@@ -38,7 +38,7 @@ class Possession(QccRequest):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

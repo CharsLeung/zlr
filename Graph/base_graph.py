@@ -10,7 +10,8 @@ from = 'office desktop'
 import pandas as pd
 import datetime as dt
 
-from Graph.entity import QccRequest
+from Calf.threading import Thread
+from Graph.entity import BaseEntity
 from py2neo import Graph, NodeMatcher, RelationshipMatcher, Subgraph
 
 
@@ -50,11 +51,11 @@ class BaseGraph:
         """
         ns = None
         # _ = graph.run('match (n:Enterprise{URL:"%s"}) return n limit 1' % url)
-        for label in labels:
-            n = self.NodeMatcher.match(label).where(
-                cypher).first()
-            if n is not None:
-                return n
+        # for label in labels:
+        #     n = self.NodeMatcher.match(label).where(
+        #         cypher).first()
+        #     if n is not None:
+        #         return n
         return ns
         pass
 
@@ -93,8 +94,8 @@ class BaseGraph:
                                  'EXCEPTION')
                     self.graph_merge_nodes(nds, toleration)
 
-    def graph_merge_relationships(self, relationships=None,
-                                  toleration=10, **kwargs):
+    def merge_relationships(self, relationships=None,
+                            toleration=10, **kwargs):
         """
         把一个子图合并到数据库中去，因为我们一般都是批量插入节点或者关系，
         但有时候在这批量数据中可能有一些异常的节点，会影响整批数据的插入，
@@ -128,7 +129,30 @@ class BaseGraph:
                     self.to_logs('commit subgraph to database raise ({}) on '
                                  '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
                                  'EXCEPTION', name=str(kwargs))
-                    self.graph_merge_relationships(rps, toleration, **kwargs)
+                    self.merge_relationships(rps, toleration, **kwargs)
+            pass
+
+    def graph_merge_relationships(self,
+                                  relationships=None,
+                                  toleration=10,
+                                  use_multiprocessing=False,
+                                  timeout=None,
+                                  **kwargs):
+        if use_multiprocessing:
+            th = Thread(self.merge_relationships,
+                        **dict(relationships=relationships,
+                               toleration=toleration,
+                               **kwargs
+                               )
+                        )
+            th.start()
+            # th.join(timeout)
+            # return th.get_result()
+        else:
+            self.merge_relationships(
+                relationships, toleration, **kwargs
+            )
+            # return rlt
 
     def add_index_and_constraint(self, index=None, constraint=None):
         """
@@ -147,6 +171,7 @@ class BaseGraph:
                             self.graph.schema.create_uniqueness_constraint(l, c)
                             print('success to create constraint for '
                                   '{}({})'.format(l, c))
+                        # self.graph.schema.create_uniqueness_constraint(l, c)
                 else:
                     print('failed create constraint for {}, '
                           'this label not in db.'.format(l))
@@ -173,11 +198,11 @@ class BaseGraph:
 
     @staticmethod
     def get_format_amount(k, v):
-        return QccRequest.get_format_amount(k, v)
+        return BaseEntity.get_format_amount(k, v)
 
     @staticmethod
     def get_format_dict(data):
-        _ = QccRequest.get_format_dict(data)
+        _ = BaseEntity.get_format_dict(data)
         return _ if isinstance(_, list) else [_]
 
     def get_neo_node(self, node):
@@ -198,3 +223,4 @@ class BaseGraph:
                 self.to_logs('filed initialize {} Neo node'.format(
                     node.label), 'ERROR')
             return n
+

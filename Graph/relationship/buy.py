@@ -2,23 +2,23 @@
 
 """
 project = zlr(20200403备份)
-file_name = sell_to
+file_name = purchase
 author = Administrator
-datetime = 2020/4/7 0007 下午 18:35
+datetime = 2020/4/7 0007 下午 18:37
 from = office desktop
 """
 from Graph.relationship import Base
 
 
-class Sell(Base):
+class Buy(Base):
 
     """
-    销售...商品
+    购买、采购...
     """
 
     ATTRIBUTES = [
-        # ['销售占比', 'PROPORTION'],
-        # ['销售金额', 'AMOUNT'],
+        # ['采购占比', 'PROPORTION'],
+        # ['采购金额', 'AMOUNT'],
     ]
 
     def __init__(self, enterprise=None, thing=None, **kwargs):
@@ -43,18 +43,18 @@ class Sell(Base):
         pass
 
 
-class SellTo(Base):
+class BuyFrom(Base):
 
     """
-    向...销售...
+    从...购买、采购...
     """
 
     ATTRIBUTES = [
-        # ['销售占比', 'PROPORTION'],
-        # ['销售金额', 'AMOUNT'],
+        # ['采购占比', 'PROPORTION'],
+        # ['采购金额', 'AMOUNT'],
     ]
 
-    def __init__(self, sell=None, buy=None, **kwargs):
+    def __init__(self, buy=None, sell=None, **kwargs):
         properties = {}
         ks = kwargs.keys()
         for a in self.ATTRIBUTES:
@@ -63,14 +63,14 @@ class SellTo(Base):
             elif a[1] in ks:
                 properties[a[1]] = kwargs.pop(a[1])
             else:
-                if buy is None:
+                if sell is None:
                     continue
-                if a[0] in buy.keys():
-                    properties[a[1]] = buy[a[0]]
-                elif a[1] in buy.keys():
-                    properties[a[1]] = buy[a[1]]
+                if a[0] in sell.keys():
+                    properties[a[1]] = sell[a[0]]
+                elif a[1] in sell.keys():
+                    properties[a[1]] = sell[a[1]]
                 else:
                     pass
         properties = dict(properties, **kwargs)
-        Base.__init__(self, sell, buy, **properties)
+        Base.__init__(self, buy, sell, **properties)
         pass

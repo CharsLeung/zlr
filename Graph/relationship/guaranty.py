@@ -7,46 +7,37 @@ author = Administrator
 datetime = 2020/4/8 0008 下午 16:14
 from = office desktop
 """
-from py2neo import Relationship
+from Graph.relationship import Base
 
 
-class Guaranty:
+class Guaranty(Base):
 
     """
     抵押...
     """
-
-    name = 'GUARANTY'
 
     ATTRIBUTES = [
         # ['销售占比', 'PROPORTION'],
         # ['销售金额', 'AMOUNT'],
     ]
 
-    def __init__(self, owner, possession, **kwargs):
-        self.owner = owner
-        self.possession = possession
-        self.properties = {}
+    def __init__(self, owner=None, possession=None, **kwargs):
+        properties = {}
         ks = kwargs.keys()
         for a in self.ATTRIBUTES:
             if a[0] in ks:
-                self.properties[a[1]] = kwargs.pop(a[0])
+                properties[a[1]] = kwargs.pop(a[0])
             elif a[1] in ks:
-                self.properties[a[1]] = kwargs.pop(a[1])
+                properties[a[1]] = kwargs.pop(a[1])
             else:
+                if possession is None:
+                    continue
                 if a[0] in possession.keys():
-                    self.properties[a[1]] = possession[a[0]]
+                    properties[a[1]] = possession[a[0]]
                 elif a[1] in possession.keys():
-                    self.properties[a[1]] = possession[a[1]]
+                    properties[a[1]] = possession[a[1]]
                 else:
                     pass
-        self.properties = dict(self.properties, **kwargs)
-
-    def get_relationship(self):
-        return Relationship(
-            self.owner,
-            self.name,
-            self.possession,
-            **self.properties
-        )
+        properties = dict(properties, **kwargs)
+        Base.__init__(self, owner, possession, **properties)
         pass

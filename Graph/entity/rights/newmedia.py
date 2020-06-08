@@ -9,10 +9,10 @@ from = office desktop
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class OfficialAccount(QccRequest):
+class OfficialAccount(BaseEntity):
 
     """
     公众号
@@ -31,7 +31,7 @@ class OfficialAccount(QccRequest):
     primarykey = 'WC_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -71,7 +71,7 @@ class OfficialAccount(QccRequest):
         return oas
 
 
-class Applets(QccRequest):
+class Applets(BaseEntity):
 
     """
     小程序
@@ -93,7 +93,7 @@ class Applets(QccRequest):
     primarykey = 'NAME'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -133,7 +133,7 @@ class Applets(QccRequest):
         return oas
 
 
-class Weibo(QccRequest):
+class Weibo(BaseEntity):
 
     """
     微博
@@ -154,7 +154,7 @@ class Weibo(QccRequest):
     primarykey = 'URL'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

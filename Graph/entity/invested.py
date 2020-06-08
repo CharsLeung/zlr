@@ -9,10 +9,10 @@ from = 'office desktop'
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Invested(QccRequest):
+class Invested(BaseEntity):
 
     """
     被投资企业，对外投资对象不是某个以存在的企业时，新建一个被投资实体
@@ -38,7 +38,7 @@ class Invested(QccRequest):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

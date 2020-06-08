@@ -7,21 +7,11 @@ author = 'Administrator'
 datetime = '2020/3/25 0025 下午 15:00'
 from = 'office desktop' 
 """
-from py2neo import Relationship
+from Graph.relationship import Base
 
 
-class BelongIndustry:
-    name = 'BELONG_INDUSTRY'
+class BelongIndustry(Base):
 
     def __init__(self, enterprise, industry, **kwargs):
-        self.enterprise = enterprise
-        self.industry = industry
-        self.properties = kwargs
-
-    def get_relationship(self):
-        return Relationship(
-            self.enterprise,
-            self.name,
-            self.industry,
-            **self.properties
-        )
+        Base.__init__(self, enterprise, industry, **kwargs)
+        pass

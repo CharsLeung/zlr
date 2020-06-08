@@ -7,12 +7,10 @@ author = 'Administrator'
 datetime = '2020/3/26 0026 上午 11:21'
 from = 'office desktop' 
 """
-from py2neo import Relationship
+from Graph.relationship import Base
 
 
-class Defendant:
-
-    name = 'Defendant'
+class Defendant(Base):
 
     ATTRIBUTES = [
         ['案件名称', 'CASE_NAME'],
@@ -25,17 +23,5 @@ class Defendant:
     ]
 
     def __init__(self, defendant, case, **kwargs):
-        self.defendant = defendant
-        self.case = case
-        self.properties = kwargs
-        for a in self.ATTRIBUTES:
-            if a[1] not in kwargs.keys():
-                self.properties[a[1]] = case[a[1]]
-
-    def get_relationship(self):
-        return Relationship(
-            self.defendant,
-            self.name,
-            self.case,
-            **self.properties
-        )
+        Base.__init__(self, defendant, case, **kwargs)
+        pass

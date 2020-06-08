@@ -8,10 +8,10 @@ datetime = '2020-03-17 9:46'
 IDE = PyCharm
 """
 import warnings
-from Graph.entity import QccRequest, NeoNode
+from Graph.entity import BaseEntity, NeoNode
 
 
-class Person(QccRequest):
+class Person(BaseEntity):
     """
     自然人
     """
@@ -36,7 +36,7 @@ class Person(QccRequest):
     index = [('NAME',)]
 
     def __init__(self,  NAME=None, SEX=None, EDUCATION=None, URL=None, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
 
         self.BaseAttributes[self.get_englishAttribute_by_chinese('姓名')] = NAME if NAME is not None else None
         self.BaseAttributes[self.get_englishAttribute_by_chinese('性别')] = SEX if SEX is not None else None

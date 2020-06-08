@@ -34,20 +34,28 @@ graph = Graph('http://localhost:7474', username='neo4j', password='12345')
 # n1 = Person(**{'姓名': 'A', 'URL': 'asd-x', 'name': 'x'}).get_neo_node(primarykey='URL')
 # n2 = Person(**{'姓名': 'B', 'URL': 'asd-y', 'name': 'y'}).get_neo_node(primarykey='URL')
 # n3 = Person(**{'姓名': 'C', 'URL': 'asd-z', 'name': 'z'}).get_neo_node(primarykey='URL')
-# r1 = Relationship(n1, 'lr', n2)
-# r2 = Relationship(n2, 'lr', n3)
-#
-# tx = graph.begin()
-# tx.merge(Subgraph([n1, n2]))
-# tx.merge(Subgraph(relationships=[r1, r2]))
-# tx.commit()
+n1 = Node('Person', **{'url': 'abc', 'name': 'A'})
+n1.__primarykey__ = 'url'
+n1.__primarylabel__ = 'Person'
 
-url = 'https://www.qcc.com/firm_e69a6ff5e714ad65d477895bc1df5848.html'
-nm = NodeMatcher(graph)
+n2 = Node('Enterprise', **{'url': 'abc', 'name': 'Etp'})
+n2.__primarykey__ = 'url'
+n2.__primarylabel__ = 'Enterprise'
+
+r1 = Relationship(n1, 'lr', n2)
+r2 = Relationship(n2, 'lr', n1)
+
+tx = graph.begin()
+tx.merge(Subgraph([n1, n2]))
+tx.merge(Subgraph(relationships=[r1, r2]))
+tx.commit()
+
+# url = 'https://www.qcc.com/firm_e69a6ff5e714ad65d477895bc1df5848.html'
+# nm = NodeMatcher(graph)
 # _ = nm.match('Enterprise').where(
 #     '_.URL="{}"'.format()
 # ).first()
-_ = graph.run('match (n:Enterprise) return n.PAID_UP_CAPITAL_AMOUNT, n.PAID_UP_CAPITAL_UNIT').to_data_frame()
+# _ = graph.run('match (n:Enterprise) return n.PAID_UP_CAPITAL_AMOUNT, n.PAID_UP_CAPITAL_UNIT').to_data_frame()
 # r = graph.run('match (e:Enterprise)-[:HAVE]-(em:Email) where e.NAME="重庆数宜信信用管理有限公司" return em.EMAIL')
 # 1.
 # idx = graph.schema.get_indexes('Enterprise')

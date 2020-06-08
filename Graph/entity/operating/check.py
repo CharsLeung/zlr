@@ -8,10 +8,10 @@ datetime = 2020/4/7 0007 下午 18:11
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Check(QccRequest):
+class Check(BaseEntity):
 
     """
     抽查检查
@@ -32,7 +32,7 @@ class Check(QccRequest):
     primarykey = 'HASH_ID'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -75,7 +75,7 @@ class Check(QccRequest):
         return obj
 
 
-class RandomCheck(QccRequest):
+class RandomCheck(BaseEntity):
 
     """
     双随机抽查
@@ -96,7 +96,7 @@ class RandomCheck(QccRequest):
     primarykey = 'TASK_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

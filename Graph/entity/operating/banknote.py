@@ -8,10 +8,10 @@ datetime = 2020/5/13 0013 上午 11:23
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Banknote(QccRequest):
+class Banknote(BaseEntity):
 
     """
     票据
@@ -32,7 +32,7 @@ class Banknote(QccRequest):
     primarykey = 'HASH_ID'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

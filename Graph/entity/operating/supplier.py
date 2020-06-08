@@ -8,10 +8,10 @@ datetime = 2020/4/7 0007 下午 17:53
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Supplier(QccRequest):
+class Supplier(BaseEntity):
 
     """
     供应商
@@ -32,7 +32,7 @@ class Supplier(QccRequest):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

@@ -7,27 +7,15 @@ author = 'Administrator'
 datetime = '2020/3/23 0023 下午 14:55'
 from = 'office desktop' 
 """
-from py2neo import Relationship
+from Graph.relationship import Base
 
 
-class Located:
+class Located(Base):
 
     """
     坐落于、位于
     """
 
-    name = 'LOCATED'
-
-    def __init__(self, enterprise, address, **kwargs):
-        self.enterprise = enterprise
-        self.address = address
-        self.properties = kwargs
+    def __init__(self, enterprise=None, address=None, **kwargs):
+        Base.__init__(self, enterprise, address, **kwargs)
         pass
-
-    def get_relationship(self):
-        return Relationship(
-            self.enterprise,
-            self.name,
-            self.address,
-            **self.properties
-        )

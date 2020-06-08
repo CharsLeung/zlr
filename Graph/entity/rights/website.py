@@ -9,10 +9,10 @@ from = 'office desktop'
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Website(QccRequest):
+class Website(BaseEntity):
     """
     网站
     """
@@ -34,7 +34,7 @@ class Website(QccRequest):
     primarykey = 'LICENSE'
 
     def __init__(self, URL=None, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         self.BaseAttributes['URL'] = URL if URL is not None else None
         if len(kwargs):
             sks = self.synonyms.keys()

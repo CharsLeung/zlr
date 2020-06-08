@@ -9,10 +9,10 @@ from = office desktop
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class HeadCompany(QccRequest):
+class HeadCompany(BaseEntity):
 
     """
     总公司，总公司对象不是某个已存在的企业时，新建一个总公司实体
@@ -38,7 +38,7 @@ class HeadCompany(QccRequest):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

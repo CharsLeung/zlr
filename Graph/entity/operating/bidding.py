@@ -8,10 +8,10 @@ datetime = 2020/4/7 0007 下午 17:17
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Bidding(QccRequest):
+class Bidding(BaseEntity):
 
     """
     招投标信息
@@ -33,7 +33,7 @@ class Bidding(QccRequest):
     primarykey = 'URL'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

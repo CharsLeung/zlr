@@ -9,10 +9,10 @@ from = office desktop
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Patent(QccRequest):
+class Patent(BaseEntity):
     """
     专利
     """
@@ -33,7 +33,7 @@ class Patent(QccRequest):
     primarykey = 'LICENSE'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

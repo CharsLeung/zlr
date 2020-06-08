@@ -8,10 +8,10 @@ datetime = 2020/3/30 0030 下午 14:21
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Involveder(QccRequest):
+class Involveder(BaseEntity):
 
     """
     案件参与者
@@ -27,10 +27,10 @@ class Involveder(QccRequest):
     # ID
     primarykey = 'HASH_ID'
 
-    index = [('NAME',)]
+    index = [('NAME',), ('URL',)]
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()
@@ -41,8 +41,16 @@ class Involveder(QccRequest):
                     self.BaseAttributes[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of case involveder.')
-        self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
+
         if 'URL' in self.BaseAttributes.keys():
             self.BaseAttributes['URL'] = self.parser_url(
                 self.BaseAttributes['URL'])
+            if self.BaseAttributes['URL'] is None:
+                if len(self.BaseAttributes['NAME']) < 2:
+                    self.BaseAttributes['NAME'] = None
+        if sum([1 if v is not None else 0 for v in
+                self.BaseAttributes.values()]):
+            self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
+        else:
+            self.BaseAttributes['HASH_ID'] = None
         pass

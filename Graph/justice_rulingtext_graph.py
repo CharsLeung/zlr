@@ -10,7 +10,7 @@ from = office desktop
 import datetime as dt
 from Graph import BaseGraph
 from Calf.data import BaseModel
-from Graph.entity import Ruling, RulingText
+from Graph.entity import Judgment, JudgmentDoc
 # from Graph.entity import Enterprise
 from Graph.exception import SuccessMessage
 from Graph.relationship import Have

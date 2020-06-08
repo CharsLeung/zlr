@@ -10,7 +10,7 @@ IDE = PyCharm
 import warnings
 
 from py2neo import Node as NeoNode
-from Graph.entity import QccRequest, Person, Address, \
+from Graph.entity import BaseEntity, Person, Address, \
     ShareHolder, Invested, Telephone, Email, Branch, \
     HeadCompany, ConstructionProject, Related, Certificate
 
@@ -18,7 +18,7 @@ from Graph.entity import QccRequest, Person, Address, \
 from Graph.exception import ExceptionInfo
 
 
-class Enterprise(QccRequest):
+class Enterprise(BaseEntity):
     """
     公司，主要列示了工商信息和最基本的信息
     """
@@ -26,6 +26,7 @@ class Enterprise(QccRequest):
     # 属性对照表
     ATTRIBUTES = [
         ['名称', 'NAME'],
+        ['链接', 'URL'],
         ['电话', 'TELEPHONE'],
         ['官网', 'WEBSITE'],
         ['邮箱', 'EMAIL'],
@@ -61,17 +62,17 @@ class Enterprise(QccRequest):
 
     index = [('NAME',)]
 
-    def __init__(self, ReturnString=None, **kwargs):
-        QccRequest.__init__(self, ReturnString)
-        if ReturnString is None:
+    def __init__(self, data=None, **kwargs):
+        BaseEntity.__init__(self, data)
+        if data is None:
             pass
         else:
             if self.metaModel != '基本信息':
                 raise TypeError('')
-            self.BaseAttributes['URL'] = self.parser_url(self.url)
+            self.BaseAttributes['URL'] = self.url
             self.BaseAttributes['NAME'] = self.name.strip()
             self.BaseAttributes['UPDATE_DATE'] = self.update_date
-            if 'content' in ReturnString.keys():
+            if 'content' in data.keys():
                 self._certifications()
                 self._business()
                 # if
@@ -86,9 +87,9 @@ class Enterprise(QccRequest):
                 else:
                     warnings.warn('Undefined key for dict of enterprise.')
                     self.BaseAttributes[k] = v
-            if 'URL' in self.BaseAttributes.keys():
-                self.BaseAttributes['URL'] = self.parser_url(
-                    self.BaseAttributes['URL'])
+        if 'URL' in self.BaseAttributes.keys():
+            self.BaseAttributes['URL'] = self.parser_url(
+                self.BaseAttributes['URL'])
         pass
 
     def _certifications(self):
@@ -137,22 +138,6 @@ class Enterprise(QccRequest):
         except Exception as e:
             ExceptionInfo(e)
             print(self.name, bs)
-
-    def get_neo_node(self, primarylabel=None, primarykey=None):
-        n = NeoNode(
-            self.label,
-            # URL=self.url,
-            # NAME=self.name,
-            # UPDATE_DATE=self.update_date,
-            **self.BaseAttributes
-        )
-        if primarylabel is not None:
-            n.__primarylabel__ = primarylabel
-        else:
-            n.__primarylabel__ = self.label
-        if primarykey is not None:
-            n.__primarykey__ = primarykey
-        return n
 
     def get_legal_representative(self):
         bs = self.get_format_dict(self.content['工商信息'])

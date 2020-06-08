@@ -9,10 +9,10 @@ from = office desktop
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Certificate(QccRequest):
+class Certificate(BaseEntity):
     """
     资质证书，证书编号作为id属性
     """
@@ -24,6 +24,7 @@ class Certificate(QccRequest):
         ['证书链接', 'URL'],
         ['发证日期', 'START_DATE'],
         ['截止日期', 'END_DATE'],
+        ['发证机关', 'AGENCY'],
     ]
 
     synonyms = {
@@ -36,7 +37,7 @@ class Certificate(QccRequest):
     primarykey = 'CTF_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

@@ -8,10 +8,10 @@ datetime = 2020/4/1 0001 上午 11:38
 from = office desktop
 """
 import warnings
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Punishment(QccRequest):
+class Punishment(BaseEntity):
 
     """
     行政处罚
@@ -38,12 +38,13 @@ class Punishment(QccRequest):
         '处罚决定日期': '处罚日期',
         '决定机关': '决定机关',
         '处罚单位': '决定机关',
+        '处罚机关': '决定机关',
     }
 
     primarykey = 'DECISION_RULING_NUM'
 
     def __init__(self, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         if len(kwargs):
             sks = self.synonyms.keys()
             cad = self.chineseAttributeDict()

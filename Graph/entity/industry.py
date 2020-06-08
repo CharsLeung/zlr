@@ -9,10 +9,10 @@ from = 'office desktop'
 """
 import warnings
 
-from Graph.entity import QccRequest
+from Graph.entity import BaseEntity
 
 
-class Industry(QccRequest):
+class Industry(BaseEntity):
     """
     行业
     """
@@ -22,7 +22,7 @@ class Industry(QccRequest):
     ]
 
     def __init__(self, NAME=None, **kwargs):
-        QccRequest.__init__(self)
+        BaseEntity.__init__(self)
         self.BaseAttributes['NAME'] = NAME if NAME is not None else None
         if len(kwargs):
             sks = self.synonyms.keys()

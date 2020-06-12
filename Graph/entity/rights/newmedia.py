@@ -31,19 +31,7 @@ class OfficialAccount(BaseEntity):
     primarykey = 'WC_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of official account.')
-                    self.BaseAttributes[k] = v
-
+        BaseEntity.__init__(self, **kwargs)
         pass
 
     @classmethod
@@ -99,12 +87,12 @@ class Applets(BaseEntity):
             cad = self.chineseAttributeDict()
             for k, v in zip(kwargs.keys(), kwargs.values()):
                 if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
+                    self[cad[k]] = v
                 elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
+                    self[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of applets.')
-                    self.BaseAttributes[k] = v
+                    self[k] = v
 
         pass
 
@@ -160,12 +148,12 @@ class Weibo(BaseEntity):
             cad = self.chineseAttributeDict()
             for k, v in zip(kwargs.keys(), kwargs.values()):
                 if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
+                    self[cad[k]] = v
                 elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
+                    self[cad[self.synonyms[k]]] = v
                 else:
                     warnings.warn('Undefined key for dict of weibo.')
-                    self.BaseAttributes[k] = v
+                    self[k] = v
 
         pass
 

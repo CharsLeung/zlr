@@ -7,9 +7,10 @@ author = Administrator
 datetime = 2020/3/27 0027 下午 14:03
 from = office desktop
 """
+import os
 import pandas as pd
 
-from Calf.utils import File
+from Calf.utils import File, progress_bar
 from Graph.entity import entities, BaseEntity
 from Graph.relationship import relationships
 from Graph.enterprise_graph import EtpGraph
@@ -21,7 +22,6 @@ from Graph.news_graph import NewsGraph
 from Graph.develop_graph import DvpGraph
 from Graph.rights_graph import RightsGraph
 
-
 # def getEntityUniqueCodeSYX(data, flag):
 #     data['URL'] = data.URL.map(
 #         lambda x: BaseEntity.getEntityUniqueCodeSYX(x, flag))
@@ -30,64 +30,27 @@ from Graph.rights_graph import RightsGraph
 #
 # prs = pd.read_csv('D:\graph_data\图数据\基本信息\实体\Person.csv', engine='python', encoding='utf-8')
 # prs = getEntityUniqueCodeSYX(prs, 'prs')
-import_path = r'D:\neo4j-community-3.5.14\import'
+import_path = r'D:\neo4j-community-3.5.14\import\图数据'
 
 
 def runEtpGraph():
-    eg = EtpGraph()
+    gp = EtpGraph()
+
     # eg.create_index_and_constraint()
     # eg.create_all_nodes()
     # eg.create_all_relationship()
 
-    def getNodes():
-        save_path = '图数据\基本信息\实体\\'
-        File.check_file(save_path)
-        nodes = eg.get_all_nodes()
-        cp = []
-
-        for k, v in zip(nodes.keys(), nodes.values()):
-            primarykey = entities(k).primarykey
-            _nds_ = pd.DataFrame(v)
-            _nds_.dropna(subset=[primarykey], inplace=True)
-            _nds_.drop_duplicates(subset=[primarykey], inplace=True)
-            _nds_ = entities(k).getImportCSV(_nds_)
-            _nds_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-
-            # cp.append('// create {} nodes.\n'.format(k))
-            # cp.append('USING PERIODIC COMMIT\n')
-            # cp.append('LOAD CSV WITH HEADERS FROM "file:///{}{}.csv" AS ROW\n'.format(
-            #     '\\\\'.join(save_path.split('\\')), k
-            # ))
-            # columns = list(_nds_.columns)
-            # # columns.remove('label')
-            # _cp_ = ['{}: ROW.{}'.format(col, col) for col in columns]
-            # cp.append('CREATE (:{}'.format(k) + '{' + ', '.join(_cp_) + '});\n')
-            # cp.append('\n\n')
-            pass
-
-        # with open(import_path + save_path + 'cyphers.txt', 'w+',
-        #           encoding='utf-8') as f:
-        #     f.writelines(cp)
-
-        pass
-
-    def getRelations():
-        save_path = '图数据\基本信息\关系\\'
-        File.check_file(save_path)
-        rps = eg.get_all_relationships()
-
-        for k, v in zip(rps.keys(), rps.values()):
-            _rps_ = pd.DataFrame(v)
-            _rps_.dropna(subset=['from', 'to'], inplace=True)
-            _rps_ = relationships(k).getImportCSV(_rps_)
-            _rps_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
+    def getNodesAndRelations():
+        nodes, rps = gp.get_all_nodes_and_relationships(
+            import_path, mode='a')
         pass
 
     # getNodes()
-    getRelations()
+    # getRelations()
+    getNodesAndRelations()
 
-    if len(eg.logs):
-        eg.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
+    if len(gp.logs):
+        gp.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
     pass
 
 
@@ -98,26 +61,9 @@ def runOptGraph():
     og = OptGraph()
 
     def getNodesAndRelations():
-        save_path = '\图数据\经营状况\实体\\'
-        File.check_file(import_path + save_path)
-        nodes, rps = og.get_all_nodes_and_relationships()
-
-        for k, v in zip(nodes.keys(), nodes.values()):
-            primarykey = entities(k).primarykey
-            _nds_ = pd.DataFrame(v)
-            _nds_.dropna(subset=[primarykey], inplace=True)
-            _nds_.drop_duplicates(subset=[primarykey], inplace=True)
-            _nds_ = entities(k).getImportCSV(_nds_)
-            _nds_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
-        save_path = '\图数据\经营状况\关系\\'
-        File.check_file(import_path + save_path)
-        for k, v in zip(rps.keys(), rps.values()):
-            _rps_ = pd.DataFrame(v)
-            _rps_.dropna(subset=['from', 'to'], inplace=True)
-            _rps_ = relationships(k).getImportCSV(_rps_)
-            _rps_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
+        nodes, rps = og.get_all_nodes_and_relationships(
+            import_path, mode='a')
+        # og.save_graph(import_path, nodes, rps, 'append')
         pass
 
     getNodesAndRelations()
@@ -131,35 +77,17 @@ def runOptGraph():
 
 
 def runOptRiskGraph():
-    og = OptRiskGraph()
+    gp = OptRiskGraph()
 
     def getNodesAndRelations():
-        save_path = '\图数据\经营风险\实体\\'
-        File.check_file(import_path + save_path)
-        nodes, rps = og.get_all_nodes_and_relationships()
-
-        for k, v in zip(nodes.keys(), nodes.values()):
-            primarykey = entities(k).primarykey
-            _nds_ = pd.DataFrame(v)
-            _nds_.dropna(subset=[primarykey], inplace=True)
-            _nds_.drop_duplicates(subset=[primarykey], inplace=True)
-            _nds_ = entities(k).getImportCSV(_nds_)
-            _nds_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
-        save_path = '\图数据\经营风险\关系\\'
-        File.check_file(import_path + save_path)
-        for k, v in zip(rps.keys(), rps.values()):
-            _rps_ = pd.DataFrame(v)
-            _rps_.dropna(subset=['from', 'to'], inplace=True)
-            _rps_ = relationships(k).getImportCSV(_rps_)
-            _rps_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
+        nodes, rps = gp.get_all_nodes_and_relationships(
+            import_path, mode='a')
         pass
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(og.logs):
-        og.save_logs('D:\graph_data\graph_run_logs_for_org.csv')
+    if len(gp.logs):
+        gp.save_logs('D:\graph_data\graph_run_logs_for_org.csv')
     pass
 
 
@@ -167,35 +95,17 @@ def runOptRiskGraph():
 
 
 def runDvpGraph():
-    og = DvpGraph()
+    gp = DvpGraph()
 
     def getNodesAndRelations():
-        save_path = '\图数据\企业发展\实体\\'
-        File.check_file(import_path + save_path)
-        nodes, rps = og.get_all_nodes_and_relationships()
-
-        for k, v in zip(nodes.keys(), nodes.values()):
-            primarykey = entities(k).primarykey
-            _nds_ = pd.DataFrame(v)
-            _nds_.dropna(subset=[primarykey], inplace=True)
-            _nds_.drop_duplicates(subset=[primarykey], inplace=True)
-            _nds_ = entities(k).getImportCSV(_nds_)
-            _nds_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
-        save_path = '\图数据\企业发展\关系\\'
-        File.check_file(import_path + save_path)
-        for k, v in zip(rps.keys(), rps.values()):
-            _rps_ = pd.DataFrame(v)
-            _rps_.dropna(subset=['from', 'to'], inplace=True)
-            _rps_ = relationships(k).getImportCSV(_rps_)
-            _rps_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
+        nodes, rps = gp.get_all_nodes_and_relationships(
+            import_path, mode='a')
         pass
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(og.logs):
-        og.save_logs('D:\graph_data\graph_run_logs_for_dvp.csv')
+    if len(gp.logs):
+        gp.save_logs('D:\graph_data\graph_run_logs_for_dvp.csv')
     pass
 
 
@@ -203,35 +113,17 @@ def runDvpGraph():
 
 
 def runRightsGraph():
-    og = RightsGraph()
+    gp = RightsGraph()
 
     def getNodesAndRelations():
-        save_path = '\图数据\知识产权\实体\\'
-        File.check_file(import_path + save_path)
-        nodes, rps = og.get_all_nodes_and_relationships()
-
-        for k, v in zip(nodes.keys(), nodes.values()):
-            primarykey = entities(k).primarykey
-            _nds_ = pd.DataFrame(v)
-            _nds_.dropna(subset=[primarykey], inplace=True)
-            _nds_.drop_duplicates(subset=[primarykey], inplace=True)
-            _nds_ = entities(k).getImportCSV(_nds_)
-            _nds_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
-        save_path = '\图数据\知识产权\关系\\'
-        File.check_file(import_path + save_path)
-        for k, v in zip(rps.keys(), rps.values()):
-            _rps_ = pd.DataFrame(v)
-            _rps_.dropna(subset=['from', 'to'], inplace=True)
-            _rps_ = relationships(k).getImportCSV(_rps_)
-            _rps_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
+        nodes, rps = gp.get_all_nodes_and_relationships(
+            import_path, mode='a')
         pass
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(og.logs):
-        og.save_logs('D:\graph_data\graph_run_logs_for_rights.csv')
+    if len(gp.logs):
+        gp.save_logs('D:\graph_data\graph_run_logs_for_rights.csv')
     pass
 
 
@@ -239,35 +131,17 @@ def runRightsGraph():
 
 
 def runJusGraph():
-    og = JusGraph()
+    gp = JusGraph()
 
     def getNodesAndRelations():
-        save_path = '\图数据\知识产权\实体\\'
-        File.check_file(import_path + save_path)
-        nodes, rps = og.get_all_nodes_and_relationships()
-
-        for k, v in zip(nodes.keys(), nodes.values()):
-            primarykey = entities(k).primarykey
-            _nds_ = pd.DataFrame(v)
-            _nds_.dropna(subset=[primarykey], inplace=True)
-            _nds_.drop_duplicates(subset=[primarykey], inplace=True)
-            _nds_ = entities(k).getImportCSV(_nds_)
-            _nds_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
-        save_path = '\图数据\知识产权\关系\\'
-        File.check_file(import_path + save_path)
-        for k, v in zip(rps.keys(), rps.values()):
-            _rps_ = pd.DataFrame(v)
-            _rps_.dropna(subset=['from', 'to'], inplace=True)
-            _rps_ = relationships(k).getImportCSV(_rps_)
-            _rps_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
+        nodes, rps = gp.get_all_nodes_and_relationships(
+            import_path, mode='a')
         pass
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(og.logs):
-        og.save_logs('D:\graph_data\graph_run_logs_for_justice.csv')
+    if len(gp.logs):
+        gp.save_logs('D:\graph_data\graph_run_logs_for_justice.csv')
     pass
 
 
@@ -275,39 +149,21 @@ def runJusGraph():
 
 
 def runNewsGraph():
-    og = NewsGraph()
+    gp = NewsGraph()
 
     def getNodesAndRelations():
-        save_path = '\图数据\知识产权\实体\\'
-        File.check_file(import_path + save_path)
-        nodes, rps = og.get_all_nodes_and_relationships()
-
-        for k, v in zip(nodes.keys(), nodes.values()):
-            primarykey = entities(k).primarykey
-            _nds_ = pd.DataFrame(v)
-            _nds_.dropna(subset=[primarykey], inplace=True)
-            _nds_.drop_duplicates(subset=[primarykey], inplace=True)
-            _nds_ = entities(k).getImportCSV(_nds_)
-            _nds_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
-        save_path = '\图数据\知识产权\关系\\'
-        File.check_file(import_path + save_path)
-        for k, v in zip(rps.keys(), rps.values()):
-            _rps_ = pd.DataFrame(v)
-            _rps_.dropna(subset=['from', 'to'], inplace=True)
-            _rps_ = relationships(k).getImportCSV(_rps_)
-            _rps_.to_csv(import_path + save_path + '{}.csv'.format(k), index=False)
-            pass
+        nodes, rps = gp.get_all_nodes_and_relationships(
+            import_path, mode='a')
         pass
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(og.logs):
-        og.save_logs('D:\graph_data\graph_run_logs_for_news.csv')
+    if len(gp.logs):
+        gp.save_logs('D:\graph_data\graph_run_logs_for_news.csv')
     pass
 
 
-runNewsGraph()
+# runNewsGraph()
 
 
 def f3():
@@ -321,3 +177,134 @@ def f3():
 # f3()
 
 
+def check():
+    fps = File.get_all_file(import_path)
+    n_fps = []
+    r_fps = []
+    for p in fps:
+        if 'nodes' in p:
+            n_fps.append(p)
+        if 'relationships':
+            r_fps.append(p)
+        pass
+
+    from Calf.data import BaseModel
+    base = BaseModel(
+        tn='cq_all',
+        # tn='qcc.1.1',
+        # location='gcxy',
+        # dbname='data'
+    )
+
+    def func1():
+        # 处理非基本信息模块下的Enterprise
+        etp_fps = []
+        for p in n_fps:
+            if 'Enterprise' in p and 'EtpGraph' not in p:
+                etp_fps.append(p)
+        etp_fps = set([os.path.join(*p.split('\\')[:-1]) for p in etp_fps])
+        etp = entities('Enterprise')
+        etp_data = []
+        for ep in etp_fps:
+            ed = etp.read_csv(ep, ep)
+            etp_data.append(ed)
+        etp_data = pd.concat(etp_data)
+        etp_data.drop_duplicates(['URL:ID'], inplace=True)
+        etp_data.reset_index(drop=True, inplace=True)
+        total = len(etp_data)
+
+        etp_data['exist'] = False
+        for i, r in etp_data.iterrows():
+            try:
+                _ = base.query_one(sql={'name': r['NAME'], 'metaModel': '基本信息'},
+                                   field={'name': 1, '_id': 0})
+                if _ is not None:
+                    etp_data.loc[i, ['exist']] = True
+                if i % 100 == 0:
+                    progress_bar(total, i, 'check')
+            except Exception as e:
+                print(e)
+        etp_data = etp_data[~etp_data['exist']]
+        etp_data.drop(['exist'], axis=1)
+        etp.to_csv(etp_data, import_path, split_header=True)
+        pass
+
+    func1()
+
+    def func2():
+        # 处理Related
+        rel_fps = []
+        for p in n_fps:
+            if 'Related' in p:
+                rel_fps.append(p)
+        rel_fps = set([os.path.join(*p.split('\\')[:-1]) for p in rel_fps])
+        rel = entities('Related')
+        rel_data = []
+        for ep in rel_fps:
+            ed = rel.read_csv(ep, ep)
+            rel_data.append(ed)
+        rel_data = pd.concat(rel_data)
+        # rel_data.drop_duplicates(['URL:ID'], inplace=True)
+
+        drop = rel_data.loc[:, ['URL:ID', 'NAME']]
+        drop['count'] = 1
+        drop = drop.groupby(['URL:ID'], as_index=False).agg({
+            'count': 'count', 'NAME': 'first'
+        })
+        drop = drop[(drop['count'] > 3) & (drop['NAME'].str.len() < 4)]
+        drop = drop['URL:ID']
+        # drop = drop.tolist()
+        if len(drop):
+            rel_data = rel_data[~rel_data['URL:ID'].isin(drop)]
+        rel.to_csv(rel_data, import_path, split_header=True)
+        pass
+
+    # func2()
+    pass
+
+
+# check()
+
+
+def getImportCSV():
+    fps = File.get_all_file(import_path)
+    fps = reversed(fps)
+    n_fps = []
+    r_fps = []
+
+    for p in fps:
+        if '.csv' in p:
+            if 'nodes' in p:
+                n_fps.append(p)
+            elif 'relationships' in p:
+                r_fps.append(p)
+                # File.rename(p, p.replace('(', '_').replace(')', ''))
+            else:
+                print(p)
+    # for np in n_fps:
+    #     if 'Header' in np:
+    #         print(np)
+    # print('-' * 60)
+    # for np in n_fps:
+    #     if 'Header' not in np:
+    #         print(np)
+    print('-'*60)
+    for rp in r_fps:
+        if 'Header' in rp:
+            print(rp)
+    print('-' * 60)
+    for rp in r_fps:
+        if 'Header' not in rp:
+            print(rp)
+    pass
+
+
+# getImportCSV()
+
+
+def run():
+    import os
+    with open(r'D:\neo4j-community-3.5.14\bin\import.bat', 'r+', encoding='utf-8') as f:
+        cmd = f.readline()
+        os.system(cmd)
+    pass

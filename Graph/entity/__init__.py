@@ -41,6 +41,7 @@ from Graph.entity.rights.trademark import Trademark
 from Graph.entity.rights.app import App
 from Graph.entity.rights.copyright import WorkCopyRight, SoftCopyRight
 from Graph.entity.rights.newmedia import OfficialAccount, Applets, Weibo
+from Graph.entity.rights.product import Product
 from Graph.entity.operating.bidding import Bidding
 from Graph.entity.operating.check import Check, RandomCheck
 from Graph.entity.operating.client import Client
@@ -109,6 +110,7 @@ def entities(label=None):
         'Plot': Plot(),
         'Debt': Debt(),
         'Banknote': Banknote(),
+        'Product': Product(),
     }
     if label is None:
         return ets

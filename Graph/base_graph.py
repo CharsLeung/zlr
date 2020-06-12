@@ -7,6 +7,7 @@ author = 'Administrator'
 datetime = '2020/3/24 0024 下午 14:28'
 from = 'office desktop' 
 """
+import os
 import pandas as pd
 import datetime as dt
 
@@ -26,6 +27,10 @@ class BaseGraph:
         self.logs = []
         self.index_and_constraint_statue = False
         pass
+
+    @property
+    def label(self):
+        return str(self.__class__.__name__)
 
     def to_logs(self, info, tp='LOG', name=''):
         self.logs.append({
@@ -219,8 +224,40 @@ class BaseGraph:
         else:
             n = node.get_neo_node(primarykey=node.primarykey)
             if n is None or n.__primarykey__ is None:
-                print('--')
+                print('<->', node)
                 self.to_logs('filed initialize {} Neo node'.format(
                     node.label), 'ERROR')
             return n
+
+    def save_graph(self, folder, nodes, rps, mode='w'):
+        from Calf.utils import File
+        from Graph.entity import entities
+        from Graph.relationship import relationships
+        # nodes, rps = eg.get_all_nodes_and_relationships()
+        nodes_save_folder = os.path.join(folder, self.label, 'nodes')
+        File.check_file(nodes_save_folder)
+        print('save graph data(mode={}):'.format(mode))
+        print(' nodes:')
+        nc = 0
+        for k, _nds_ in zip(nodes.keys(), nodes.values()):
+            ne = entities(k)
+            _nds_ = ne.to_pandas(_nds_, )
+            _nds_ = ne.getImportCSV(_nds_)
+            count = ne.to_csv(_nds_, nodes_save_folder, True, mode)
+            print('     {} {}'.format(count, k))
+            nc += count
+            pass
+        rps_save_folder = os.path.join(folder, self.label, 'relationships')
+        File.check_file(rps_save_folder)
+        print(' relationships:')
+        rc = 0
+        for k, _rps_ in zip(rps.keys(), rps.values()):
+            rel = relationships(k)
+            _rps_ = rel.to_pandas(_rps_, )
+            _rps_ = rel.getImportCSV(_rps_)
+            count = rel.to_csv(_rps_, rps_save_folder, True, mode)
+            print('     {} {}'.format(count, k))
+            rc += count
+            pass
+        return nc, rc
 

@@ -34,19 +34,8 @@ class Website(BaseEntity):
     primarykey = 'LICENSE'
 
     def __init__(self, URL=None, **kwargs):
-        BaseEntity.__init__(self)
-        self.BaseAttributes['URL'] = URL if URL is not None else None
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of website.')
-                    self.BaseAttributes[k] = v
+        BaseEntity.__init__(self, **kwargs)
+        self['URL'] = URL if URL is not None else None
         pass
 
     def __split_levels__(self):

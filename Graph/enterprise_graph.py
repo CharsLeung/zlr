@@ -27,9 +27,9 @@ class EtpGraph(BaseGraph):
     def __init__(self):
         BaseGraph.__init__(self)
         self.base = BaseModel(
-            tn='qcc.1.1',
-            location='gcxy',
-            dbname='data'
+            tn='cq_all',
+            # location='local2',
+            # dbname='data'
         )
         pass
 
@@ -618,8 +618,8 @@ class EtpGraph(BaseGraph):
             limit=10000,
             no_cursor_timeout=True)
         i, j = 0, 0
-        # etp_count = enterprises.count()
-        etp_count = 1000
+        etp_count = enterprises.count()
+        # etp_count = 1000
         relationships = {}
         for ep in enterprises:
             i += 1
@@ -656,7 +656,7 @@ class EtpGraph(BaseGraph):
         """
         # 如果关系上的节点不存在，数据库同样会补充创建节点，这一点很重要
         nodes, rps = [], []
-        etp_n = etp.get_neo_node(primarykey=etp.primarykey)
+        etp_n = self.get_neo_node(etp)
         if etp_n is None:
             self.to_logs('filed initialize enterprise Neo node',
                          'ERROR', etp['NAME'])
@@ -670,7 +670,7 @@ class EtpGraph(BaseGraph):
                 cypher='_.URL = "{}"'.format(lr['URL'])
             )
             if lr_n is None:
-                lr_n = lr.get_neo_node(primarykey=lr.primarykey)
+                lr_n = self.get_neo_node(lr)
             if lr_n is None:
                 self.to_logs('filed initialize legal representative Neo node',
                              'ERROR', etp['NAME'])
@@ -687,7 +687,7 @@ class EtpGraph(BaseGraph):
                 for m in ms:
                     # 主要人员 下面必然是人
                     m_n = m.pop('person')
-                    m_n = m_n.get_neo_node(primarykey=m_n.primarykey)
+                    m_n = self.get_neo_node(m_n)
                     if m_n is None:
                         self.to_logs('filed initialize major manager Neo node',
                                      'ERROR', etp['NAME'])
@@ -699,7 +699,7 @@ class EtpGraph(BaseGraph):
                          'EXCEPTION', etp['NAME'])
         try:
             dz = etp.get_address()
-            dz_n = dz.get_neo_node(primarykey=dz.primarykey)
+            dz_n = self.get_neo_node(dz)
             if dz_n is None:
                 self.to_logs('filed initialize address Neo node',
                              'ERROR', etp['NAME'])
@@ -728,7 +728,7 @@ class EtpGraph(BaseGraph):
                         )
                     if sh_n is None:  # 在以有的对象里面没找到这个股东
                         # 创建这个意外的股东
-                        sh_n = s_.get_neo_node(primarykey=s_.primarykey)
+                        sh_n = self.get_neo_node(s_)
                         if sh_n is None:
                             self.to_logs('filed initialize unexpected share '
                                          'holder Neo node', 'ERROR', etp['NAME'])
@@ -747,7 +747,7 @@ class EtpGraph(BaseGraph):
                 #              ' this enterprise.', 'ERROR', eb['name'])
                 pass
             else:
-                tel_n = tel.get_neo_node(primarykey=tel.primarykey)
+                tel_n = self.get_neo_node(tel)
                 if tel_n is None:
                     self.to_logs('filed initialize telephone Neo node',
                                  'ERROR', etp['NAME'])
@@ -767,7 +767,7 @@ class EtpGraph(BaseGraph):
                 #              ' this enterprise.', 'ERROR', eb['name'])
                 pass
             else:
-                eml_n = eml.get_neo_node(primarykey=eml.primarykey)
+                eml_n = self.get_neo_node(eml)
                 if eml_n is None:
                     self.to_logs('filed initialize email Neo node',
                                  'ERROR', etp['NAME'])
@@ -791,7 +791,7 @@ class EtpGraph(BaseGraph):
                             iv_['URL'], iv_['NAME'])
                     )
                     if iv_n is None:
-                        iv_n = iv_.get_neo_node(primarykey=iv_.primarykey)
+                        iv_n = self.get_neo_node(iv_)
                         if iv_n is None:
                             self.to_logs('filed initialize unexpected invested '
                                          'Neo node', 'ERROR', etp['NAME'])
@@ -814,13 +814,13 @@ class EtpGraph(BaseGraph):
                             b_['URL'], b_['NAME'])
                     )
                     if b_n is None:
-                        b_n = b_.get_neo_node(primarykey=b_.primarykey)
+                        b_n = self.get_neo_node(b_)
                         if b_n is None:
                             self.to_logs('filed initialize unexpected branch '
                                          'Neo node', 'ERROR', etp['NAME'])
                             continue
                         p_ = b['principal']
-                        p_n = p_.get_neo_node(primarykey=p_.primarykey)
+                        p_n = self.get_neo_node(p_)
                         if p_n is not None:
                             nodes.append(p_n)
                             rps.append(Principal(p_n, b_n))
@@ -845,13 +845,13 @@ class EtpGraph(BaseGraph):
                             h_['URL'], h_['NAME'])
                     )
                     if h_n is None:
-                        h_n = h_.get_neo_node(primarykey=h_.primarykey)
+                        h_n = self.get_neo_node(h_)
                         if h_n is None:
                             self.to_logs('filed initialize unexpected head '
                                          'company Neo node', 'ERROR', etp['NAME'])
                             continue
                         p_ = h['principal']
-                        p_n = p_.get_neo_node(primarykey=p_.primarykey)
+                        p_n = self.get_neo_node(p_)
                         if p_n is not None:
                             nodes.append(p_n)
                             rps.append(Principal(p_n, h_n))
@@ -869,7 +869,7 @@ class EtpGraph(BaseGraph):
             if len(cps):
                 for c in cps:
                     c_ = c.pop('project')
-                    c_n = c_.get_neo_node(primarykey=c_.primarykey)
+                    c_n = self.get_neo_node(c_)
                     if c_n is None:
                         self.to_logs('filed initialize unexpected construction '
                                      'project Neo node', 'ERROR', etp['NAME'])
@@ -882,7 +882,7 @@ class EtpGraph(BaseGraph):
                             jsdw['URL'], jsdw['NAME'])
                     )
                     if j_n is None:
-                        j_n = jsdw.get_neo_node(primarykey=jsdw.primarykey)
+                        j_n = self.get_neo_node(jsdw)
                         if j_n is None:
                             self.to_logs('filed initialize unexpected construction '
                                          'agency Neo node', 'ERROR', etp['NAME'])
@@ -905,7 +905,7 @@ class EtpGraph(BaseGraph):
             if len(ccs):
                 for c in ccs:
                     c_ = c.pop('ctf')
-                    c_n = c_.get_neo_node(primarykey=c_.primarykey)
+                    c_n = self.get_neo_node(c_)
                     if c_n is None:
                         self.to_logs('filed initialize unexpected construction '
                                      'certificate Neo node', 'ERROR', etp['NAME'])
@@ -918,44 +918,73 @@ class EtpGraph(BaseGraph):
                          'EXCEPTION', etp['NAME'])
         return nodes, rps
 
-    def get_all_nodes_and_relationships(self):
+    def get_all_nodes_and_relationships(
+            self, save_folder=None, **kwargs):
         enterprises = self.base.query(
             sql={
                 'metaModel': '基本信息',
-                # 'name': {'$in': ns['name'].tolist()}
+                # 'name': '重庆长寿城乡商贸总公司'   # {'$in': ns['name'].tolist()}
             },
-            limit=10000,
+            limit=100000,
             no_cursor_timeout=True)
         i, j = 0, 0
-        # etp_count = enterprises.count()
-        etp_count = 1000
+        nc, rc = 0, 0
+        etp_count = enterprises.count()
+        # etp_count = 1000
         nodes, relationships = {}, {}
         for ep in enterprises:
-            i += 1
-            etp = Enterprise(ep)
-            nds, rps = self.get_all_nodes_and_relationships_from_enterprise(etp)
-            for _nds_ in nds:
-                if _nds_ is None:
-                    continue
-                _nds_ = _nds_.to_dict()
-                if _nds_['label'] in nodes.keys():
-                    nodes[_nds_['label']].append(_nds_)
-                else:
-                    nodes[_nds_['label']] = [_nds_]
-                pass
-            for _rps_ in rps:
-                _rps_ = _rps_.to_dict()
-                if _rps_['label'] in relationships.keys():
-                    relationships[_rps_['label']].append(_rps_)
-                else:
-                    relationships[_rps_['label']] = [_rps_]
-                pass
-            if i % 1000 == 0:
+            try:
+                i += 1
+                etp = Enterprise(ep)
+                nds, rps = self.get_all_nodes_and_relationships_from_enterprise(etp)
+                for _nds_ in nds:
+                    if _nds_ is None:
+                        continue
+                    label = list(_nds_.labels)[0]
+                    _nds_ = dict(label=label, **_nds_)
+                    if _nds_['label'] in nodes.keys():
+                        nodes[_nds_['label']].append(_nds_)
+                    else:
+                        nodes[_nds_['label']] = [_nds_]
+                    pass
+                for _rps_ in rps:
+                    _rps_ = _rps_.to_dict()
+                    if _rps_['label'] in relationships.keys():
+                        relationships[_rps_['label']].append(_rps_)
+                    else:
+                        relationships[_rps_['label']] = [_rps_]
+                    pass
+            except Exception as e:
+                ExceptionInfo(e)
+                print(ep['name'])
+                continue
+            if i % 10000 == 0:
                 j += 1
+                if save_folder is not None:
+                    _nc_, _rc_ = self.save_graph(
+                        save_folder, nodes,
+                        relationships, **kwargs)
+                    nc += _nc_
+                    rc += _rc_
+                    nodes.clear()
+                    relationships.clear()
                 print(SuccessMessage(
                     '{}:success trans data to csv '
                     'round {} and deal {}/{} enterprise'
                     ''.format(dt.datetime.now(), j, i, etp_count)
                 ))
+                pass
+        if save_folder is not None:
+            _nc_, _rc_ = self.save_graph(
+                save_folder, nodes,
+                relationships, **kwargs)
+            nc += _nc_
+            rc += _rc_
+            nodes.clear()
+            relationships.clear()
+            print('Summary:')
+            print(' save graph data:')
+            print('   {} nodes'.format(nc))
+            print('   {} relationships'.format(rc))
             pass
         return nodes, relationships

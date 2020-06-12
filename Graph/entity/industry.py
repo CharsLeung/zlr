@@ -18,22 +18,13 @@ class Industry(BaseEntity):
     """
 
     ATTRIBUTES = [
-        ['行业名称', 'NAME']
+        ['行业名称', 'NAME'],
+        ['行业代码', 'CODE']
     ]
 
-    def __init__(self, NAME=None, **kwargs):
-        BaseEntity.__init__(self)
-        self.BaseAttributes['NAME'] = NAME if NAME is not None else None
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of share holder.')
-                    self.BaseAttributes[k] = v
+    def __init__(self, name=None, code=None, **kwargs):
+        BaseEntity.__init__(self, **kwargs)
+        self['NAME'] = name if name is not None else None
+        self['CODE'] = code if code is not None else None
         pass
 

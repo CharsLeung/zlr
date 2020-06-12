@@ -26,6 +26,7 @@ from Graph.relationship.compete import Compete
 from Graph.relationship.recruit import Recruit
 from Graph.relationship.appraise import Appraise
 from Graph.relationship.apply_bankrupt import ApplyBankrupt
+from Graph.relationship.produce import Produce
 
 
 def relationships(name=None):
@@ -58,7 +59,8 @@ def relationships(name=None):
         "COMPETE": Compete(),
         "RECRUIT": Recruit(),
         "APPRAISE": Appraise(),
-        "APPLY_BANKRUPT": ApplyBankrupt()
+        "APPLY_BANKRUPT": ApplyBankrupt(),
+        'PRODUCE': Produce()
     }
     if name is not None:
         return rsp[name]

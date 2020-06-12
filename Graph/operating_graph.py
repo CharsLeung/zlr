@@ -29,9 +29,10 @@ class OptGraph(BaseGraph):
     def __init__(self):
         BaseGraph.__init__(self)
         self.base = BaseModel(
-            tn='qcc.1.1',
-            location='gcxy',
-            dbname='data'
+            tn='cq_all',
+            # tn='qcc.1.1',
+            # location='gcxy',
+            # dbname='data'
         )
         pass
 
@@ -957,42 +958,45 @@ class OptGraph(BaseGraph):
                 )
             pass
         if '客户' in etp['content'].keys():
-            data = self.get_format_dict(
-                etp['content']['客户'])
+            data = self.get_format_dict(etp['content']['客户'])
             cs = Client.create_from_dict(data)
             for c in cs:
-                _ = c.pop('client')
-                n = self.match_node(
+                cli = c.pop('client')
+                cli_n = self.match_node(
                     *legal,
                     cypher='_.URL = "{}" OR _.NAME = "{}"'.format(
-                        _['URL'], _['NAME'])
+                        cli['URL'], cli['NAME'])
                 )
-                if n is None:
-                    n = self.get_neo_node(_)
-                    if n is None:
+                if cli_n is None:
+                    if cli.isEnterprise():
+                        cli = Enterprise(**cli.to_dict(with_label=False))
+                    cli_n = self.get_neo_node(cli)
+                    if cli_n is None:
                         continue
-                nodes.append(n)
+                nodes.append(cli_n)
                 relationships.append(
-                    SellTo(etp_n, n, **c)
+                    SellTo(etp_n, cli_n, **c)
                 )
             pass
         if '供应商' in etp['content'].keys():
             data = self.get_format_dict(etp['content']['供应商'])
             ss = Supplier.create_from_dict(data)
             for s in ss:
-                _ = s.pop('supplier')
-                n = self.match_node(
+                sup = s.pop('supplier')
+                sup_n = self.match_node(
                     *legal,
                     cypher='_.URL = "{}" OR _.NAME = "{}"'.format(
-                        _['URL'], _['NAME'])
+                        sup['URL'], sup['NAME'])
                 )
-                if n is None:
-                    n = self.get_neo_node(_)
-                    if n is None:
+                if sup_n is None:
+                    if sup.isEnterprise():
+                        sup = Enterprise(**sup.to_dict(with_label=False))
+                    sup_n = self.get_neo_node(sup)
+                    if sup_n is None:
                         continue
-                nodes.append(n)
+                nodes.append(sup_n)
                 relationships.append(
-                    BuyFrom(etp_n, n, **s)
+                    BuyFrom(etp_n, sup_n, **s)
                 )
             pass
         if '信用评级' in etp['content'].keys():
@@ -1075,16 +1079,18 @@ class OptGraph(BaseGraph):
             pass
         return nodes, relationships
 
-    def get_all_nodes_and_relationships(self):
+    def get_all_nodes_and_relationships(
+            self, save_folder=None, **kwargs):
         enterprises = self.base.query(
             sql={
                 'metaModel': '经营状况',
                 # 'name': '重庆轩烽建材有限公司'
             },
-            limit=1000,
-            # skip=2000,
+            # limit=10000,
+            # skip=10000,
             no_cursor_timeout=True)
         i, j = 0, 0
+        nc, rc = 0, 0
         etp_count = enterprises.count()
         nodes, relationships = {}, {}
         unique_code_pattern = re.compile('(?<=unique=)\w{32}')
@@ -1100,6 +1106,7 @@ class OptGraph(BaseGraph):
             i += 1
             uc = getUniqueCode(ep['url'])
             if uc is None:
+                print('{}:mismatch url'.format(ep['name']))
                 continue
             ep['url'] = '/firm_' + uc + '.html'
             nds, rps = self.get_all_nodes_and_relationships_from_enterprise(ep)
@@ -1121,12 +1128,33 @@ class OptGraph(BaseGraph):
                 else:
                     relationships[_rps_['label']] = [_rps_]
                 pass
-            if i % 1000 == 0:
+            if i % 10000 == 0:
                 j += 1
+                if save_folder is not None:
+                    _nc_, _rc_ = self.save_graph(
+                        save_folder, nodes,
+                        relationships, **kwargs)
+                    nc += _nc_
+                    rc += _rc_
+                    nodes.clear()
+                    relationships.clear()
                 print(SuccessMessage(
-                    '{}:success merge nodes to database '
+                    '{}:success trans data to csv '
                     'round {} and deal {}/{} enterprise'
-                    ''.format(dt.datetime.now(), i, j, etp_count)
+                    ''.format(dt.datetime.now(), j, i, etp_count)
                 ))
+            pass
+        if save_folder is not None:
+            _nc_, _rc_ = self.save_graph(
+                save_folder, nodes,
+                relationships, **kwargs)
+            nc += _nc_
+            rc += _rc_
+            nodes.clear()
+            relationships.clear()
+            print('Summary:')
+            print(' save graph data:')
+            print('   {} nodes'.format(nc))
+            print('   {} relationships'.format(rc))
             pass
         return nodes, relationships

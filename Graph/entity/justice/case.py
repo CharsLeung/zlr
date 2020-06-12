@@ -12,6 +12,24 @@ import warnings
 from Graph.entity import BaseEntity
 
 
+def split_case_identity(case_identity):
+    ds = []
+    names = case_identity['名称']
+    urls = case_identity['链接']
+    if names is None:
+        return []
+    names = BaseEntity.textPhrase(names).split(',')
+    if urls is None:
+        urls = []
+    else:
+        urls = urls.split(' ')
+    if len(names) > len(urls):
+        urls = urls + [None for i in range(len(names) - len(urls))]
+    for n, u in zip(names, urls):
+        ds.append({'名称': n, '链接': u})
+    return ds
+
+
 class RegisterCase(BaseEntity):
     """
     立案信息
@@ -26,18 +44,13 @@ class RegisterCase(BaseEntity):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of register case.')
-                    self.BaseAttributes[k] = v
+        BaseEntity.__init__(self, **kwargs)
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod
@@ -51,7 +64,9 @@ class RegisterCase(BaseEntity):
 
         def f(c):
             defendant = c.pop('被告人/被告/被上诉人/被申请人')
+            defendant = split_case_identity(defendant)
             plaintiff = c.pop('公诉人/原告/上诉人/申请人')
+            plaintiff = split_case_identity(plaintiff)
             ca = RegisterCase(**c)
             return dict(defendant=defendant, plaintiff=plaintiff, case=ca)
 
@@ -62,6 +77,19 @@ class RegisterCase(BaseEntity):
         else:
             warnings.warn('invalid type for register case.')
         return obj
+
+    # @classmethod
+    # def split_case_identity(cls, case_identity):
+    #     ds = []
+    #     names = case_identity['名称']
+    #     urls = case_identity['链接']
+    #     names = cls.textPhrase(names).split(',')
+    #     urls = urls.split(' ')
+    #     if len(names) > len(urls):
+    #         urls = urls + [None for i in range(len(names) - len(urls))]
+    #     for n, u in zip(names, urls):
+    #         ds.append({'名称': n, '链接': u})
+    #     return ds
 
 
 class JudicialCase(BaseEntity):
@@ -84,21 +112,17 @@ class JudicialCase(BaseEntity):
     # index = [('CASE_NAME',)]
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of justice case.')
+        BaseEntity.__init__(self, **kwargs)
         if 'CASE_IDENTITY' in self.BaseAttributes.keys():
             self.CASE_IDENTITY = self.BaseAttributes.pop('CASE_IDENTITY')
         else:
             self.CASE_IDENTITY = None
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod
@@ -136,18 +160,13 @@ class FinalCase(BaseEntity):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of register case.')
-                    self.BaseAttributes[k] = v
+        BaseEntity.__init__(self, **kwargs)
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod

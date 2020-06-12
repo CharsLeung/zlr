@@ -29,9 +29,11 @@ class JusGraph(BaseGraph):
     def __init__(self):
         BaseGraph.__init__(self)
         self.base = BaseModel(
-            tn='qcc.1.1',
-            location='gcxy',
-            dbname='data')
+            tn='cq_all',
+            # tn='qcc.1.1',
+            # location='gcxy',
+            # dbname='data'
+        )
         pass
 
     def create_index_and_constraint(self):
@@ -369,54 +371,56 @@ class JusGraph(BaseGraph):
                 if a_n is None:
                     continue
                 nodes.append(a_n)
-                bg = ca.pop('defendant')
-                bg['链接'] = Enterprise.parser_url(bg['链接'])
-                yg = ca.pop('plaintiff')
-                yg['链接'] = Enterprise.parser_url(yg['链接'])
-                if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
-                    bg_n = etp_n
-                else:
-                    bg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            bg['链接'])
-                    )
-                    if bg_n is None:
-                        # 创建这个对象
-                        # sq_n = Involveder(**sq)
-                        bg_n = Enterprise(**bg)
-                        if not bg_n.isEnterprise():
-                            bg_n = Person(**bg)
-                            if not bg_n.isPerson():
-                                bg_n = Related(**bg)
-                        bg_n = self.get_neo_node(bg_n)
-                if bg_n is not None:
-                    nodes.append(bg_n)
-                    relationships.append(
-                        InvolveCase(bg_n, a_n, **{'案件身份': '被告'})
-                    )
-                if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
-                    yg_n = etp_n
-                else:
-                    yg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            yg['链接'])
-                    )
-                    if yg_n is None:
-                        # 创建这个对象
-                        # lh_n = Involveder(**lh)
-                        yg_n = Enterprise(**yg)
-                        if not yg_n.isEnterprise():
-                            yg_n = Person(**yg)
-                            if not yg_n.isPerson():
-                                yg_n = Related(**yg)
-                        yg_n = self.get_neo_node(yg_n)
-                if yg_n is not None:
-                    nodes.append(yg_n)
-                    relationships.append(
-                        InvolveCase(yg_n, a_n, **{'案件身份': '原告'})
-                    )
+                bgs = ca.pop('defendant')
+                for bg in bgs:
+                    bg['链接'] = Enterprise.parser_url(bg['链接'])
+                    if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
+                        bg_n = etp_n
+                    else:
+                        bg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                bg['链接'])
+                        )
+                        if bg_n is None:
+                            # 创建这个对象
+                            # sq_n = Involveder(**sq)
+                            bg_n = Enterprise(**bg)
+                            if not bg_n.isEnterprise():
+                                bg_n = Person(**bg)
+                                if not bg_n.isPerson():
+                                    bg_n = Related(**bg)
+                            bg_n = self.get_neo_node(bg_n)
+                    if bg_n is not None:
+                        nodes.append(bg_n)
+                        relationships.append(
+                            InvolveCase(bg_n, a_n, **{'案件身份': '被告'})
+                        )
+                ygs = ca.pop('plaintiff')
+                for yg in ygs:
+                    yg['链接'] = Enterprise.parser_url(yg['链接'])
+                    if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
+                        yg_n = etp_n
+                    else:
+                        yg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                yg['链接'])
+                        )
+                        if yg_n is None:
+                            # 创建这个对象
+                            # lh_n = Involveder(**lh)
+                            yg_n = Enterprise(**yg)
+                            if not yg_n.isEnterprise():
+                                yg_n = Person(**yg)
+                                if not yg_n.isPerson():
+                                    yg_n = Related(**yg)
+                            yg_n = self.get_neo_node(yg_n)
+                    if yg_n is not None:
+                        nodes.append(yg_n)
+                        relationships.append(
+                            InvolveCase(yg_n, a_n, **{'案件身份': '原告'})
+                        )
             pass
 
         if '开庭公告' in etp['content'].keys():
@@ -430,54 +434,56 @@ class JusGraph(BaseGraph):
                 if a_n is None:
                     continue
                 nodes.append(a_n)
-                bg = ca.pop('defendant')
-                bg['链接'] = Enterprise.parser_url(bg['链接'])
-                yg = ca.pop('plaintiff')
-                yg['链接'] = Enterprise.parser_url(yg['链接'])
-                if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
-                    bg_n = etp_n
-                else:
-                    bg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            bg['链接'])
-                    )
-                    if bg_n is None:
-                        # 创建这个对象
-                        # sq_n = Involveder(**sq)
-                        bg_n = Enterprise(**bg)
-                        if not bg_n.isEnterprise():
-                            bg_n = Person(**bg)
-                            if not bg_n.isPerson():
-                                bg_n = Related(**bg)
-                        bg_n = self.get_neo_node(bg_n)
-                if bg_n is not None:
-                    nodes.append(bg_n)
-                    relationships.append(
-                        InvolveCase(bg_n, a_n, **{'案件身份': '被告'})
-                    )
-                if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
-                    yg_n = etp_n
-                else:
-                    yg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            yg['链接'])
-                    )
-                    if yg_n is None:
-                        # 创建这个对象
-                        # lh_n = Involveder(**lh)
-                        yg_n = Enterprise(**yg)
-                        if not yg_n.isEnterprise():
-                            yg_n = Person(**yg)
-                            if not yg_n.isPerson():
-                                yg_n = Related(**yg)
-                        yg_n = self.get_neo_node(yg_n)
-                if yg_n is not None:
-                    nodes.append(yg_n)
-                    relationships.append(
-                        InvolveCase(yg_n, a_n, **{'案件身份': '原告'})
-                    )
+                bgs = ca.pop('defendant')
+                for bg in bgs:
+                    bg['链接'] = Enterprise.parser_url(bg['链接'])
+                    if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
+                        bg_n = etp_n
+                    else:
+                        bg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                bg['链接'])
+                        )
+                        if bg_n is None:
+                            # 创建这个对象
+                            # sq_n = Involveder(**sq)
+                            bg_n = Enterprise(**bg)
+                            if not bg_n.isEnterprise():
+                                bg_n = Person(**bg)
+                                if not bg_n.isPerson():
+                                    bg_n = Related(**bg)
+                            bg_n = self.get_neo_node(bg_n)
+                    if bg_n is not None:
+                        nodes.append(bg_n)
+                        relationships.append(
+                            InvolveCase(bg_n, a_n, **{'案件身份': '被告'})
+                        )
+                ygs = ca.pop('plaintiff')
+                for yg in ygs:
+                    yg['链接'] = Enterprise.parser_url(yg['链接'])
+                    if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
+                        yg_n = etp_n
+                    else:
+                        yg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                yg['链接'])
+                        )
+                        if yg_n is None:
+                            # 创建这个对象
+                            # lh_n = Involveder(**lh)
+                            yg_n = Enterprise(**yg)
+                            if not yg_n.isEnterprise():
+                                yg_n = Person(**yg)
+                                if not yg_n.isPerson():
+                                    yg_n = Related(**yg)
+                            yg_n = self.get_neo_node(yg_n)
+                    if yg_n is not None:
+                        nodes.append(yg_n)
+                        relationships.append(
+                            InvolveCase(yg_n, a_n, **{'案件身份': '原告'})
+                        )
             pass
 
         if '送达公告' in etp['content'].keys():
@@ -491,54 +497,56 @@ class JusGraph(BaseGraph):
                 if a_n is None:
                     continue
                 nodes.append(a_n)
-                bg = ca.pop('defendant')
-                bg['链接'] = Enterprise.parser_url(bg['链接'])
-                yg = ca.pop('plaintiff')
-                yg['链接'] = Enterprise.parser_url(yg['链接'])
-                if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
-                    bg_n = etp_n
-                else:
-                    bg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            bg['链接'])
-                    )
-                    if bg_n is None:
-                        # 创建这个对象
-                        # sq_n = Involveder(**sq)
-                        bg_n = Enterprise(**bg)
-                        if not bg_n.isEnterprise():
-                            bg_n = Person(**bg)
-                            if not bg_n.isPerson():
-                                bg_n = Related(**bg)
-                        bg_n = self.get_neo_node(bg_n)
-                if bg_n is not None:
-                    nodes.append(bg_n)
-                    relationships.append(
-                        InvolveCase(bg_n, a_n, **{'案件身份': '被告'})
-                    )
-                if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
-                    yg_n = etp_n
-                else:
-                    yg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            yg['链接'])
-                    )
-                    if yg_n is None:
-                        # 创建这个对象
-                        # lh_n = Involveder(**lh)
-                        yg_n = Enterprise(**yg)
-                        if not yg_n.isEnterprise():
-                            yg_n = Person(**yg)
-                            if not yg_n.isPerson():
-                                yg_n = Related(**yg)
-                        yg_n = self.get_neo_node(yg_n)
-                if yg_n is not None:
-                    nodes.append(yg_n)
-                    relationships.append(
-                        InvolveCase(yg_n, a_n, **{'案件身份': '原告'})
-                    )
+                bgs = ca.pop('defendant')
+                for bg in bgs:
+                    bg['链接'] = Enterprise.parser_url(bg['链接'])
+                    if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
+                        bg_n = etp_n
+                    else:
+                        bg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                bg['链接'])
+                        )
+                        if bg_n is None:
+                            # 创建这个对象
+                            # sq_n = Involveder(**sq)
+                            bg_n = Enterprise(**bg)
+                            if not bg_n.isEnterprise():
+                                bg_n = Person(**bg)
+                                if not bg_n.isPerson():
+                                    bg_n = Related(**bg)
+                            bg_n = self.get_neo_node(bg_n)
+                    if bg_n is not None:
+                        nodes.append(bg_n)
+                        relationships.append(
+                            InvolveCase(bg_n, a_n, **{'案件身份': '被告'})
+                        )
+                ygs = ca.pop('plaintiff')
+                for yg in ygs:
+                    yg['链接'] = Enterprise.parser_url(yg['链接'])
+                    if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
+                        yg_n = etp_n
+                    else:
+                        yg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                yg['链接'])
+                        )
+                        if yg_n is None:
+                            # 创建这个对象
+                            # lh_n = Involveder(**lh)
+                            yg_n = Enterprise(**yg)
+                            if not yg_n.isEnterprise():
+                                yg_n = Person(**yg)
+                                if not yg_n.isPerson():
+                                    yg_n = Related(**yg)
+                            yg_n = self.get_neo_node(yg_n)
+                    if yg_n is not None:
+                        nodes.append(yg_n)
+                        relationships.append(
+                            InvolveCase(yg_n, a_n, **{'案件身份': '原告'})
+                        )
             pass
 
         if '立案信息' in etp['content'].keys():
@@ -552,54 +560,56 @@ class JusGraph(BaseGraph):
                 if c_n is None:
                     continue
                 nodes.append(c_n)
-                bg = ca.pop('defendant')
-                bg['链接'] = Enterprise.parser_url(bg['链接'])
-                yg = ca.pop('plaintiff')
-                yg['链接'] = Enterprise.parser_url(yg['链接'])
-                if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
-                    bg_n = etp_n
-                else:
-                    bg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            bg['链接'])
-                    )
-                    if bg_n is None:
-                        # 创建这个对象
-                        # sq_n = Involveder(**sq)
-                        bg_n = Enterprise(**bg)
-                        if not bg_n.isEnterprise():
-                            bg_n = Person(**bg)
-                            if not bg_n.isPerson():
-                                bg_n = Related(**bg)
-                        bg_n = self.get_neo_node(bg_n)
-                if bg_n is not None:
-                    nodes.append(bg_n)
-                    relationships.append(
-                        InvolveCase(bg_n, c_n, **{'案件身份': '被告'})
-                    )
-                if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
-                    yg_n = etp_n
-                else:
-                    yg_n = self.match_node(
-                        *['Person'] + legal,
-                        cypher='_.URL = "{}"'.format(
-                            yg['链接'])
-                    )
-                    if yg_n is None:
-                        # 创建这个对象
-                        # lh_n = Involveder(**lh)
-                        yg_n = Enterprise(**yg)
-                        if not yg_n.isEnterprise():
-                            yg_n = Person(**yg)
-                            if not yg_n.isPerson():
-                                yg_n = Related(**yg)
-                        yg_n = self.get_neo_node(yg_n)
-                if yg_n is not None:
-                    nodes.append(yg_n)
-                    relationships.append(
-                        InvolveCase(yg_n, c_n, **{'案件身份': '原告'})
-                    )
+                bgs = ca.pop('defendant')
+                for bg in bgs:
+                    bg['链接'] = Enterprise.parser_url(bg['链接'])
+                    if bg['名称'] == etp['name'] or bg['链接'] == etp_n['URL']:
+                        bg_n = etp_n
+                    else:
+                        bg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                bg['链接'])
+                        )
+                        if bg_n is None:
+                            # 创建这个对象
+                            # sq_n = Involveder(**sq)
+                            bg_n = Enterprise(**bg)
+                            if not bg_n.isEnterprise():
+                                bg_n = Person(**bg)
+                                if not bg_n.isPerson():
+                                    bg_n = Related(**bg)
+                            bg_n = self.get_neo_node(bg_n)
+                    if bg_n is not None:
+                        nodes.append(bg_n)
+                        relationships.append(
+                            InvolveCase(bg_n, c_n, **{'案件身份': '被告'})
+                        )
+                ygs = ca.pop('plaintiff')
+                for yg in ygs:
+                    yg['链接'] = Enterprise.parser_url(yg['链接'])
+                    if yg['名称'] == etp['name'] or yg['链接'] == etp_n['URL']:
+                        yg_n = etp_n
+                    else:
+                        yg_n = self.match_node(
+                            *['Person'] + legal,
+                            cypher='_.URL = "{}"'.format(
+                                yg['链接'])
+                        )
+                        if yg_n is None:
+                            # 创建这个对象
+                            # lh_n = Involveder(**lh)
+                            yg_n = Enterprise(**yg)
+                            if not yg_n.isEnterprise():
+                                yg_n = Person(**yg)
+                                if not yg_n.isPerson():
+                                    yg_n = Related(**yg)
+                            yg_n = self.get_neo_node(yg_n)
+                    if yg_n is not None:
+                        nodes.append(yg_n)
+                        relationships.append(
+                            InvolveCase(yg_n, c_n, **{'案件身份': '原告'})
+                        )
             pass
 
         if '终本案件' in etp['content'].keys():
@@ -842,16 +852,18 @@ class JusGraph(BaseGraph):
 
         return nodes, relationships
 
-    def get_all_nodes_and_relationships(self):
+    def get_all_nodes_and_relationships(
+            self, save_folder=None, **kwargs):
         enterprises = self.base.query(
             sql={
                 'metaModel': '法律诉讼',
-                # 'name': '重庆轩烽建材有限公司'
+                # 'name': '重庆合文贸易有限公司'
             },
-            limit=1000,
+            limit=100000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0
+        nc, rc = 0, 0
         etp_count = enterprises.count()
         nodes, relationships = {}, {}
         unique_code_pattern = re.compile('(?<=unique=)\w{32}')
@@ -867,6 +879,7 @@ class JusGraph(BaseGraph):
             i += 1
             uc = getUniqueCode(ep['url'])
             if uc is None:
+                print('{}:mismatch url'.format(ep['name']))
                 continue
             ep['url'] = '/firm_' + uc + '.html'
             nds, rps = self.get_all_nodes_and_relationships_from_enterprise(ep)
@@ -888,13 +901,34 @@ class JusGraph(BaseGraph):
                 else:
                     relationships[_rps_['label']] = [_rps_]
                 pass
-            if i % 1000 == 0:
+            if i % 10000 == 0:
                 j += 1
+                if save_folder is not None:
+                    _nc_, _rc_ = self.save_graph(
+                        save_folder, nodes,
+                        relationships, **kwargs)
+                    nc += _nc_
+                    rc += _rc_
+                    nodes.clear()
+                    relationships.clear()
                 print(SuccessMessage(
-                    '{}:success merge nodes to database '
+                    '{}:success trans data to csv '
                     'round {} and deal {}/{} enterprise'
-                    ''.format(dt.datetime.now(), i, j, etp_count)
+                    ''.format(dt.datetime.now(), j, i, etp_count)
                 ))
+                pass
+        if save_folder is not None:
+            _nc_, _rc_ = self.save_graph(
+                save_folder, nodes,
+                relationships, **kwargs)
+            nc += _nc_
+            rc += _rc_
+            nodes.clear()
+            relationships.clear()
+            print('Summary:')
+            print(' save graph data:')
+            print('   {} nodes'.format(nc))
+            print('   {} relationships'.format(rc))
             pass
         return nodes, relationships
 

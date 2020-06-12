@@ -77,11 +77,11 @@ class Address(BaseEntity):
 
     primarykey = 'ADDRESS'
 
-    def __init__(self, address=''):
-        BaseEntity.__init__(self)
+    def __init__(self, address='', **kwargs):
+        BaseEntity.__init__(self, **kwargs)
         address = str(address).replace(' ', '')
         if len(address) > 1:
-            self.BaseAttributes = {'ADDRESS': address}
+            self['ADDRESS'] = address
         # self.__split_levels__()
         pass
 
@@ -91,13 +91,13 @@ class Address(BaseEntity):
         :return:
         """
         # cpca 还带有绘图功能
-        if len(self.BaseAttributes['ADDRESS']):
-            _ = cpca.transform([self.BaseAttributes['ADDRESS']])
+        if len(self['ADDRESS']):
+            _ = cpca.transform([self['ADDRESS']])
             _ = _.to_dict(orient='index')[0]
-            self.BaseAttributes['PROVINCE'] = _['省']
-            self.BaseAttributes['CITY'] = _['市']
-            self.BaseAttributes['COUNTY'] = _['区']
-            self.BaseAttributes['DETAIL'] = _['地址']
+            self['PROVINCE'] = _['省']
+            self['CITY'] = _['市']
+            self['COUNTY'] = _['区']
+            self['DETAIL'] = _['地址']
         pass
 
     @classmethod

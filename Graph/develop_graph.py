@@ -14,8 +14,8 @@ from Graph import BaseGraph
 from Calf.data import BaseModel
 from Graph.exception import ExceptionInfo, SuccessMessage
 from Graph.entity import legal
-from Graph.entity import Enterprise, Related
-from Graph.relationship import Compete
+from Graph.entity import Enterprise, Related, Product
+from Graph.relationship import Compete, Produce
 from Graph.enterprise_graph import EtpGraph
 
 
@@ -24,9 +24,11 @@ class DvpGraph(BaseGraph):
     def __init__(self):
         BaseGraph.__init__(self)
         self.base = BaseModel(
-            tn='qcc.1.1',
-            location='gcxy',
-            dbname='data')
+            tn='cq_all',
+            # tn='qcc.1.1',
+            # location='gcxy',
+            # dbname='data'
+        )
         pass
 
     def create_index_and_constraint(self):
@@ -152,16 +154,25 @@ class DvpGraph(BaseGraph):
         nodes.append(etp_n)
         if '竞品信息' in etp['content'].keys():
             data = self.get_format_dict(etp['content']['竞品信息'])
+            data = Product.create_from_dict(data)
             for d in data:
+                p = d.pop('product')
+                p_n = self.get_neo_node(p)
+                if p_n is None:
+                    continue
+                nodes.append(p_n)
+                relationships.append(
+                    Compete(etp_n, p_n)
+                )
                 etp_2 = d.pop('关联企业')
                 etp_2['链接'] = Enterprise.parser_url(etp_2['链接'])
                 if etp_2['名称'] is not None and len(etp_2['名称']) > 1:
-                    etp_2['链接'] = Enterprise.parser_url(etp_2['链接'])
+                    # etp_2['链接'] = Enterprise.parser_url(etp_2['链接'])
                     etp_n_2 = self.match_node(
                         *legal,
                         cypher='_.URL = "{}"'.format(etp_2['链接'])
                     )
-                    if etp_n_2 is None and etp_2['名称'] > 1:
+                    if etp_n_2 is None and len(etp_2['名称']) > 1:
                         etp_n_2 = Enterprise(**etp_2)
                         if not etp_n_2.isEnterprise():
                             _ = {
@@ -172,22 +183,25 @@ class DvpGraph(BaseGraph):
                                 '融资信息': d.pop('融资信息'),
                                 '所属地': d.pop('所属地'),
                             }
-                            etp_n_2 = Related(**_)
+                            etp_n_2 = Related(**etp_2['链接', '名称'])
                         # etp_n_2 = Related(**_)
                         etp_n_2 = self.get_neo_node(etp_n_2)
+                    nodes.append(etp_n_2)
                     relationships.append(
-                        Compete(etp_n, etp_n_2, **d).get_relationship()
+                        Produce(etp_n_2, p_n)
                     )
         return nodes, relationships
 
-    def get_all_nodes_and_relationships(self):
+    def get_all_nodes_and_relationships(
+            self, save_folder=None, **kwargs):
         enterprises = self.base.query(
             sql={'metaModel': '企业发展'},
             field={'name': 1, 'url': 1, 'content.竞品信息': 1},
-            limit=1000,
+            limit=100000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0
+        nc, rc = 0, 0
         etp_count = enterprises.count()
         nodes, relationships = {}, {}
         unique_code_pattern = re.compile('(?<=unique=)\w{32}')
@@ -203,6 +217,7 @@ class DvpGraph(BaseGraph):
             i += 1
             uc = getUniqueCode(ep['url'])
             if uc is None:
+                print('{}:mismatch url'.format(ep['name']))
                 continue
             ep['url'] = '/firm_' + uc + '.html'
             nds, rps = self.get_all_nodes_and_relationships_from_enterprise(ep)
@@ -224,12 +239,33 @@ class DvpGraph(BaseGraph):
                 else:
                     relationships[_rps_['label']] = [_rps_]
                 pass
-            if i % 1000 == 0:
+            if i % 10000 == 0:
                 j += 1
+                if save_folder is not None:
+                    _nc_, _rc_ = self.save_graph(
+                        save_folder, nodes,
+                        relationships, **kwargs)
+                    nc += _nc_
+                    rc += _rc_
+                    nodes.clear()
+                    relationships.clear()
                 print(SuccessMessage(
-                    '{}:success merge nodes to database '
+                    '{}:success trans data to csv '
                     'round {} and deal {}/{} enterprise'
-                    ''.format(dt.datetime.now(), i, j, etp_count)
+                    ''.format(dt.datetime.now(), j, i, etp_count)
                 ))
+                pass
+        if save_folder is not None:
+            _nc_, _rc_ = self.save_graph(
+                save_folder, nodes,
+                relationships, **kwargs)
+            nc += _nc_
+            rc += _rc_
+            nodes.clear()
+            relationships.clear()
+            print('Summary:')
+            print(' save graph data:')
+            print('   {} nodes'.format(nc))
+            print('   {} relationships'.format(rc))
             pass
         return nodes, relationships

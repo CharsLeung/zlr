@@ -63,33 +63,22 @@ class Enterprise(BaseEntity):
     index = [('NAME',)]
 
     def __init__(self, data=None, **kwargs):
-        BaseEntity.__init__(self, data)
+        BaseEntity.__init__(self, data, **kwargs)
         if data is None:
             pass
         else:
             if self.metaModel != '基本信息':
                 raise TypeError('')
-            self.BaseAttributes['URL'] = self.url
-            self.BaseAttributes['NAME'] = self.name.strip()
-            self.BaseAttributes['UPDATE_DATE'] = self.update_date
+            self['URL'] = self.url
+            self['NAME'] = self.name.strip()
+            self['UPDATE_DATE'] = self.update_date
             if 'content' in data.keys():
                 self._certifications()
                 self._business()
                 # if
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of enterprise.')
-                    self.BaseAttributes[k] = v
         if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.parser_url(
-                self.BaseAttributes['URL'])
+            self['URL'] = self.parser_url(
+                self['URL'])
         pass
 
     def _certifications(self):
@@ -105,9 +94,9 @@ class Enterprise(BaseEntity):
                 for k, v in zip(ctf.keys(), ctf.values()):
                     _ = self.get_englishAttribute_by_chinese(k)
                     if _ is not None:
-                        self.BaseAttributes[_] = v
+                        self[_] = v
                     else:
-                        self.BaseAttributes[k] = v
+                        self[k] = v
         except Exception as e:
             ExceptionInfo(e)
             print(self.name, ctf)
@@ -117,10 +106,10 @@ class Enterprise(BaseEntity):
 
         :return:
         """
-        bs = self.get_format_dict(
-            self.content['工商信息']
-        )
         try:
+            bs = self.get_format_dict(
+                self.content['工商信息']
+            )
             del bs['法定代表人']
             if '注册资本' in bs.keys():
                 bs = dict(bs, **self.get_format_amount(
@@ -131,9 +120,9 @@ class Enterprise(BaseEntity):
             for k, v in zip(bs.keys(), bs.values()):
                 _ = self.get_englishAttribute_by_chinese(k)
                 if _ is not None:
-                    self.BaseAttributes[_] = v
+                    self[_] = v
                 else:
-                    self.BaseAttributes[k] = v
+                    self[k] = v
             pass
         except Exception as e:
             ExceptionInfo(e)
@@ -144,10 +133,19 @@ class Enterprise(BaseEntity):
         lr = bs['法定代表人']
         if isinstance(lr, dict):
             p = Person(**lr)
+            if not p.isPerson():
+                p = Enterprise(**lr)
+                if not p.isEnterprise():
+                    p = Related(**lr)
         elif isinstance(lr, list):
             warnings.warn('Generally, there is only one legal '
                           'representative, but multiple.')
-            p = Person(**lr[0])
+            lr = lr[0]
+            p = Person(**lr)
+            if not p.isPerson():
+                p = Enterprise(**lr)
+                if not p.isEnterprise():
+                    p = Related(**lr)
         else:
             warnings.warn('Unusual legal representative '
                           'information.')
@@ -178,7 +176,7 @@ class Enterprise(BaseEntity):
 
     def get_address(self):
         return Address(
-            self.BaseAttributes['ADDRESS']
+            self['ADDRESS']
         )
 
     def get_share_holder(self):
@@ -196,8 +194,13 @@ class Enterprise(BaseEntity):
                     s = dict(s, **self.get_format_amount(
                         '认缴出资额', s.pop('认缴出资额')
                     ))
-                s = dict(share_holder=ShareHolder(**_), **s)
-                return s
+                if self.isPerson(_['链接']):
+                    _sh_ = Person(**_)
+                elif self.isEnterprise(_['链接']):
+                    _sh_ = Enterprise(**_)
+                else:
+                    _sh_ = ShareHolder(**_)
+                return dict(share_holder=_sh_, **s)
 
             if isinstance(shs, list):
                 for s in shs:
@@ -232,7 +235,10 @@ class Enterprise(BaseEntity):
                     _ = dict(_, **self.get_format_amount(
                         '投资数额', _.pop('投资数额')
                     ))
-                return dict(invested=Invested(**e), **_)
+                inv = Enterprise(**e)
+                if not inv.isEnterprise():
+                    inv = Invested(**e)
+                return dict(invested=inv, **_)
 
             if isinstance(ivs, list):
                 for i in ivs:
@@ -247,7 +253,7 @@ class Enterprise(BaseEntity):
 
     def get_telephone_number(self):
         if 'TELEPHONE' in self.BaseAttributes.keys():
-            tel = self.BaseAttributes['TELEPHONE']
+            tel = self['TELEPHONE']
             if tel is not None and len(tel):
                 return Telephone(telephone=tel)
             else:
@@ -257,7 +263,7 @@ class Enterprise(BaseEntity):
 
     def get_email(self):
         if 'EMAIL' in self.BaseAttributes.keys():
-            em = self.BaseAttributes['EMAIL']
+            em = self['EMAIL']
             if em is not None and len(em):
                 return Email(email=em)
             else:
@@ -271,8 +277,12 @@ class Enterprise(BaseEntity):
             bs = self.get_format_dict(self.content['分支机构'])
 
             def f(_):
+                b = _.pop('企业')
+                bn = Enterprise(**b)
+                if not bn.isEnterprise():
+                    bn = Branch(**b)
                 return dict(
-                    branch=Branch(**_.pop('企业')),
+                    branch=bn,
                     principal=Person(**_.pop('负责人')),
                     **_
                 )
@@ -299,9 +309,18 @@ class Enterprise(BaseEntity):
                     ))
                 if '成立日期' in _.keys():
                     zgs['成立日期'] = _.pop('成立日期')
+                zgs_n = Enterprise(**zgs)
+                if not zgs_n.isEnterprise():
+                    zgs_n = HeadCompany(**zgs)
+                lr = _.pop('法定代表人')
+                p = Person(**lr)
+                if not p.isPerson():
+                    p = Enterprise(**lr)
+                    if not p.isEnterprise():
+                        p = Related(**lr)
                 return dict(
-                    head=HeadCompany(**zgs),
-                    principal=Person(**_.pop('法定代表人')),
+                    head=zgs_n,
+                    principal=p,
                     **_
                 )
 
@@ -320,8 +339,12 @@ class Enterprise(BaseEntity):
             cp = self.get_format_dict(self.content['建筑工程项目'])
 
             def f(_):
+                _js_ = _.pop('建设单位')
+                jsdw = Enterprise(**_js_)
+                if not jsdw.isEnterprise():
+                    jsdw = Related(**_js_)
                 return dict(
-                    jsdw=Related(**_.pop('建设单位')),
+                    jsdw=jsdw,
                     project=ConstructionProject(**_)
                 )
 

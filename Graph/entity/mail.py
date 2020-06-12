@@ -29,32 +29,22 @@ class Email(BaseEntity):
     primarykey = 'EMAIL'
 
     def __init__(self, email=None, **kwargs):
-        BaseEntity.__init__(self)
-        self.BaseAttributes['EMAIL'] = email if email is not None else None
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of email.')
-                    self.BaseAttributes[k] = v
+        BaseEntity.__init__(self, **kwargs)
+        if email is not None and len(email) > 1:
+            self['EMAIL'] = email
         self.__split_levels__()
         pass
 
     def __split_levels__(self):
-        if self.BaseAttributes['EMAIL'] is None:
-            self.BaseAttributes['ACCOUNT'] = None
-            self.BaseAttributes['SERVER'] = None
+        if self.BaseAttributes.get('EMAIL') is None:
+            self['ACCOUNT'] = None
+            self['SERVER'] = None
         else:
-            _ = self.BaseAttributes['EMAIL'].split('@')
+            _ = self['EMAIL'].split('@')
             if len(_) > 1:
-                self.BaseAttributes['ACCOUNT'] = _[0]
-                self.BaseAttributes['SERVER'] = _[1]
+                self['ACCOUNT'] = _[0]
+                self['SERVER'] = _[1]
             else:
-                self.BaseAttributes['ACCOUNT'] = None
-                self.BaseAttributes['SERVER'] = None
+                self['ACCOUNT'] = None
+                self['SERVER'] = None
         pass

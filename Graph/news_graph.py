@@ -25,7 +25,8 @@ class NewsGraph(BaseGraph):
     def __init__(self):
         BaseGraph.__init__(self)
         self.base = BaseModel(
-            tn='qcc.1.1',
+            tn='cq_all',
+            # tn='qcc.1.1',
             # location='gcxy',
             # dbname='data'
         )
@@ -151,22 +152,25 @@ class NewsGraph(BaseGraph):
                 n_ = n.pop('news')
                 n_n = self.get_neo_node(n_)
                 if n_n is not None:
+                    nodes.append(n_n)
                     relationships.append(
-                        Have(etp_n, n_n, **n).get_relationship()
+                        Have(etp_n, n_n, **n)
                     )
             pass
         return nodes, relationships
 
-    def get_all_nodes_and_relationships(self):
+    def get_all_nodes_and_relationships(
+            self, save_folder=None, **kwargs):
         enterprises = self.base.query(
             sql={
                 'metaModel': '公司新闻',
                 # 'name': '重庆轩烽建材有限公司'
             },
-            limit=1000,
+            limit=100000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0
+        nc, rc = 0, 0
         etp_count = enterprises.count()
         nodes, relationships = {}, {}
         unique_code_pattern = re.compile('(?<=unique=)\w{32}')
@@ -182,6 +186,7 @@ class NewsGraph(BaseGraph):
             i += 1
             uc = getUniqueCode(ep['url'])
             if uc is None:
+                print('{}:mismatch url'.format(ep['name']))
                 continue
             ep['url'] = '/firm_' + uc + '.html'
             nds, rps = self.get_all_nodes_and_relationships_from_enterprise(ep)
@@ -203,12 +208,33 @@ class NewsGraph(BaseGraph):
                 else:
                     relationships[_rps_['label']] = [_rps_]
                 pass
-            if i % 1000 == 0:
+            if i % 10000 == 0:
                 j += 1
+                if save_folder is not None:
+                    _nc_, _rc_ = self.save_graph(
+                        save_folder, nodes,
+                        relationships, **kwargs)
+                    nc += _nc_
+                    rc += _rc_
+                    nodes.clear()
+                    relationships.clear()
                 print(SuccessMessage(
-                    '{}:success merge nodes to database '
+                    '{}:success trans data to csv '
                     'round {} and deal {}/{} enterprise'
-                    ''.format(dt.datetime.now(), i, j, etp_count)
+                    ''.format(dt.datetime.now(), j, i, etp_count)
                 ))
+                pass
+        if save_folder is not None:
+            _nc_, _rc_ = self.save_graph(
+                save_folder, nodes,
+                relationships, **kwargs)
+            nc += _nc_
+            rc += _rc_
+            nodes.clear()
+            relationships.clear()
+            print('Summary:')
+            print(' save graph data:')
+            print('   {} nodes'.format(nc))
+            print('   {} relationships'.format(rc))
             pass
         return nodes, relationships

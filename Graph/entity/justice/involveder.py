@@ -25,32 +25,26 @@ class Involveder(BaseEntity):
     # 但有一个问题，名称很有可能存在重复的，类似
     # 有很多同名的人,所以，根据基础属性算一个哈希
     # ID
-    primarykey = 'HASH_ID'
+    primarykey = 'URL'
 
-    index = [('NAME',), ('URL',)]
+    index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of case involveder.')
-
+        BaseEntity.__init__(self, **kwargs)
         if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.parser_url(
-                self.BaseAttributes['URL'])
-            if self.BaseAttributes['URL'] is None:
-                if len(self.BaseAttributes['NAME']) < 2:
-                    self.BaseAttributes['NAME'] = None
-        if sum([1 if v is not None else 0 for v in
-                self.BaseAttributes.values()]):
-            self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
-        else:
-            self.BaseAttributes['HASH_ID'] = None
+            self['URL'] = self.parser_url(
+                self['URL'])
+            if self['URL'] is None:
+                if len(self['NAME']) < 2:
+                    self['NAME'] = None
+                else:
+                    self['URL'] = '%s_%s' % (
+                        self.label,
+                        self.getHashValue(self['NAME'])
+                    )
+        pass
+
+    def to_pandas(self, nodes, **kwargs):
+        return BaseEntity.to_pandas(
+            self, nodes, drop_suspicious=True, tolerate=3)
         pass

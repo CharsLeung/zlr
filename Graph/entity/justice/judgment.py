@@ -37,25 +37,20 @@ class Judgment(BaseEntity):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of justice case.')
-                    self.BaseAttributes[k] = v
+        BaseEntity.__init__(self, **kwargs)
         if 'CASE_IDENTITY' in self.BaseAttributes.keys():
             self.CASE_IDENTITY = self.BaseAttributes.pop('CASE_IDENTITY')
         else:
             self.CASE_IDENTITY = None
-        if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.parser_url(
-                self.BaseAttributes['URL'])
+        # if 'URL' in self.BaseAttributes.keys():
+        #     self['URL'] = self.parser_url(
+        #         self['URL'])
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod
@@ -94,14 +89,15 @@ class Judgment(BaseEntity):
         case_identity['文书链接'] = c1['链接']
         _ = case_identity.pop('案件身份').split('|')
         _1 = _[0].replace('-\n', '-').split('\n')
+        _1 = [cls.textPhrase(t) for t in _1]
         _1_ = []
         for __ in _1:
             i = __.split('-')
             if len(i) == 2:
-                _1_.append([i[0].strip(), i[1].strip()])
+                _1_.append([i[0], i[1]])
         _1 = _1_
         if len(_) > 1:
-            _2 = [i.strip() for i in _[1].split(' ')]
+            _2 = [cls.textPhrase(i) for i in _[1].split(' ')]
             if len(_1) > len(_2):
                 _2 = _2 + [None for i in range(len(_1) - len(_2))]
         else:
@@ -111,12 +107,17 @@ class Judgment(BaseEntity):
         # cnt = [c.split('-') for c in _1]
         inv = []
         for i in range(len(_2)):
-            c = _1[i]
-            c.append(BaseEntity.parser_url(_2[i]))
-            if len(c) == 3:
-                inv.append(c)
-            else:
-                warnings.warn('裁决文书：异常的案件身份({})'.format('-'.join(c)))
+            try:
+                c = _1[i]
+                c.append(cls.parser_url(_2[i]))
+                if len(c) == 3:
+                    inv.append(c)
+                else:
+                    warnings.warn('裁决文书：异常的案件身份({})'.format('-'.join(c)))
+            except Exception as e:
+                print('Judgment:', e)
+                break
+                pass
         case_identity['涉案对象'] = inv
         return case_identity
 
@@ -156,15 +157,21 @@ class JudgmentDoc(BaseEntity):
             cad = self.chineseAttributeDict()
             for k, v in zip(kwargs.keys(), kwargs.values()):
                 if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
+                    self[cad[k]] = v
                 elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
+                    self[cad[self.synonyms[k]]] = v
                 else:
                     # warnings.warn('Undefined key for dict of ruling text.')
-                    self.BaseAttributes[k] = v
-        if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.parser_url(
-                self.BaseAttributes['URL'])
+                    self[k] = v
+        # if 'URL' in self.BaseAttributes.keys():
+        #     self['URL'] = self.parser_url(
+        #         self['URL'])
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod

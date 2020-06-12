@@ -33,18 +33,7 @@ class Patent(BaseEntity):
     primarykey = 'LICENSE'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of patent.')
-                    self.BaseAttributes[k] = v
+        BaseEntity.__init__(self, **kwargs)
         pass
 
     @classmethod

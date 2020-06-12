@@ -35,25 +35,17 @@ class Person(BaseEntity):
 
     index = [('NAME',)]
 
-    def __init__(self,  NAME=None, SEX=None, EDUCATION=None, URL=None, **kwargs):
-        BaseEntity.__init__(self)
-
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('姓名')] = NAME if NAME is not None else None
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('性别')] = SEX if SEX is not None else None
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('学历')] = EDUCATION if EDUCATION is not None else None
-        self.BaseAttributes[self.get_englishAttribute_by_chinese('链接')] = URL if URL is not None else None
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of person.')
-                    self.BaseAttributes[k] = v
+    def __init__(self, NAME=None, SEX=None, EDUCATION=None, URL=None, **kwargs):
+        BaseEntity.__init__(self, **kwargs)
+        if NAME is not None:
+            self[self.get_englishAttribute_by_chinese('姓名')] = NAME
+        if SEX is not None:
+            self[self.get_englishAttribute_by_chinese('性别')] = SEX
+        if EDUCATION is not None:
+            self[self.get_englishAttribute_by_chinese('学历')] = EDUCATION
+        if URL is not None:
+            self[self.get_englishAttribute_by_chinese('链接')] = URL
         if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.parser_url(
-                self.BaseAttributes['URL'])
+            self['URL'] = self.parser_url(
+                self['URL'])
         pass

@@ -38,23 +38,13 @@ class License(BaseEntity):
     primarykey = 'PERMIT_LICENSE_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of license.')
-                    self.BaseAttributes[k] = v
-        if self.primarykey not in self.BaseAttributes.keys() or \
-                self.BaseAttributes[self.primarykey] is None or \
-                len(self.BaseAttributes[self.primarykey]) < 2:
-            self.BaseAttributes[self.primarykey] = 'HASH-{}'.format(
-                hash(str(self.BaseAttributes)))
+        BaseEntity.__init__(self, **kwargs)
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod

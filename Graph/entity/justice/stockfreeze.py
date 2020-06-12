@@ -35,20 +35,13 @@ class StockFreeze(BaseEntity):
     primarykey = 'HASH_ID'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of check.')
-                    self.BaseAttributes[k] = v
-        self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
+        BaseEntity.__init__(self, **kwargs)
+        # self[] = hash(str(self.BaseAttributes))
+        self['HASH_ID'] = '%s_%s' % (
+            self.label,
+            self.getHashValue(str(self.BaseAttributes))
+        )
         # if 'URL' in self.BaseAttributes.keys():
-        #     self.BaseAttributes['URL'] = self.parser_url(
-        #         self.BaseAttributes['URL'])
+        #     self['URL'] = self.parser_url(
+        #         self['URL'])
         pass

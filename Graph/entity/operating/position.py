@@ -30,22 +30,21 @@ class Position(BaseEntity):
     primarykey = 'URL'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
+        BaseEntity.__init__(self, **kwargs)
+        # self['HASH_ID'] = hash(str(self.BaseAttributes))
+        if 'URL' in self.BaseAttributes.keys():
+            self['URL'] = self.parser_url(self['URL'])
+            if self['URL'] is None:
+                if len(self['NAME']) < 2:
+                    self['NAME'] = None
                 else:
-                    warnings.warn('Undefined key for dict of recruitment.')
-                    self.BaseAttributes[k] = v
-        # self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
-        # if 'URL' in self.BaseAttributes.keys():
-        #     self.BaseAttributes['URL'] = self.parser_url(
-        #         self.BaseAttributes['URL'])
+                    self['URL'] = 'Position_%s' % self.getHashValue(
+                        self['NAME'])
+        pass
+
+    def to_pandas(self, nodes, **kwargs):
+        return BaseEntity.to_pandas(
+            self, nodes, drop_suspicious=True, tolerate=3)
         pass
 
     @classmethod

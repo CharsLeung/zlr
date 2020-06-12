@@ -12,6 +12,24 @@ import warnings
 from Graph.entity import BaseEntity
 
 
+def split_case_identity(case_identity):
+    ds = []
+    names = case_identity['名称']
+    urls = case_identity['链接']
+    if names is None:
+        return []
+    names = BaseEntity.textPhrase(names).split(',')
+    if urls is None:
+        urls = []
+    else:
+        urls = urls.split(' ')
+    if len(names) > len(urls):
+        urls = urls + [None for i in range(len(names) - len(urls))]
+    for n, u in zip(names, urls):
+        ds.append({'名称': n, '链接': u})
+    return ds
+
+
 class CourtAnnounce(BaseEntity):
 
     """
@@ -36,22 +54,17 @@ class CourtAnnounce(BaseEntity):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of court announce.')
-                    self.BaseAttributes[k] = v
-        # self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
-        if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.format_url(
-                self.BaseAttributes['URL'])
+        BaseEntity.__init__(self, **kwargs)
+        # self['HASH_ID'] = hash(str(self.BaseAttributes))
+        # if 'URL' in self.BaseAttributes.keys():
+        #     self['URL'] = self.format_url(
+        #         self['URL'])
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod
@@ -65,7 +78,9 @@ class CourtAnnounce(BaseEntity):
 
         def f(c):
             defendant = c.pop('被告人/被告/被上诉人/被申请人')
+            defendant = split_case_identity(defendant)
             plaintiff = c.pop('公诉人/原告/上诉人/申请人')
+            plaintiff = split_case_identity(plaintiff)
             ca = CourtAnnounce(**c)
             return dict(defendant=defendant, plaintiff=plaintiff, announce=ca)
 
@@ -76,6 +91,24 @@ class CourtAnnounce(BaseEntity):
         else:
             warnings.warn('invalid type for court announce.')
         return obj
+
+    # @classmethod
+    # def split_case_identity(cls, case_identity):
+    #     ds = []
+    #     names = case_identity['名称']
+    #     urls = case_identity['链接']
+    #     if names is None:
+    #         return []
+    #     names = cls.textPhrase(names).split(',')
+    #     if urls is None:
+    #         urls = []
+    #     else:
+    #         urls = urls.split(' ')
+    #     if len(names) > len(urls):
+    #         urls = urls + [None for i in range(len(names) - len(urls))]
+    #     for n, u in zip(names, urls):
+    #         ds.append({'名称': n, '链接': u})
+    #     return ds
 
 
 class OpenAnnounce(BaseEntity):
@@ -100,22 +133,17 @@ class OpenAnnounce(BaseEntity):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of court open announce.')
-                    self.BaseAttributes[k] = v
-        # self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
-        if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.format_url(
-                self.BaseAttributes['URL'])
+        BaseEntity.__init__(self, **kwargs)
+        # self['HASH_ID'] = hash(str(self.BaseAttributes))
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
+        # if 'URL' in self.BaseAttributes.keys():
+        #     self['URL'] = self.format_url(
+        #         self['URL'])
         pass
 
     @classmethod
@@ -129,7 +157,9 @@ class OpenAnnounce(BaseEntity):
 
         def f(c):
             defendant = c.pop('被告人/被告/被上诉人/被申请人')
+            defendant = split_case_identity(defendant)
             plaintiff = c.pop('公诉人/原告/上诉人/申请人')
+            plaintiff = split_case_identity(plaintiff)
             ca = OpenAnnounce(**c)
             return dict(defendant=defendant, plaintiff=plaintiff, announce=ca)
 
@@ -140,6 +170,19 @@ class OpenAnnounce(BaseEntity):
         else:
             warnings.warn('invalid type for court open announce.')
         return obj
+
+    # @classmethod
+    # def split_case_identity(cls, case_identity):
+    #     ds = []
+    #     names = case_identity['名称']
+    #     urls = case_identity['链接']
+    #     names = cls.textPhrase(names).split(',')
+    #     urls = urls.split(' ')
+    #     if len(names) > len(urls):
+    #         urls = urls + [None for i in range(len(names) - len(urls))]
+    #     for n, u in zip(names, urls):
+    #         ds.append({'名称': n, '链接': u})
+    #     return ds
 
 
 class DeliveryAnnounce(BaseEntity):
@@ -165,22 +208,14 @@ class DeliveryAnnounce(BaseEntity):
     primarykey = 'CASE_NUM'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of delivery announce.')
-                    self.BaseAttributes[k] = v
-        # self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
-        if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.format_url(
-                self.BaseAttributes['URL'])
+        BaseEntity.__init__(self, **kwargs)
+        # self['HASH_ID'] = hash(str(self.BaseAttributes))
+        if self[self.primarykey] is None or \
+                len(str(self[self.primarykey])) < 2:
+            self[self.primarykey] = '%s_%s' % (
+                self.label,
+                self.getHashValue(str(self.BaseAttributes))
+            )
         pass
 
     @classmethod
@@ -194,7 +229,9 @@ class DeliveryAnnounce(BaseEntity):
 
         def f(c):
             defendant = c.pop('被告人/被告/被上诉人/被申请人')
+            defendant = split_case_identity(defendant)
             plaintiff = c.pop('公诉人/原告/上诉人/申请人')
+            plaintiff = split_case_identity(plaintiff)
             ca = CourtAnnounce(**c)
             return dict(defendant=defendant, plaintiff=plaintiff, announce=ca)
 
@@ -205,3 +242,16 @@ class DeliveryAnnounce(BaseEntity):
         else:
             warnings.warn('invalid type for delivery announce.')
         return obj
+
+    # @classmethod
+    # def split_case_identity(cls, case_identity):
+    #     ds = []
+    #     names = case_identity['名称']
+    #     urls = case_identity['链接']
+    #     names = cls.textPhrase(names).split(',')
+    #     urls = urls.split(' ')
+    #     if len(names) > len(urls):
+    #         urls = urls + [None for i in range(len(names) - len(urls))]
+    #     for n, u in zip(names, urls):
+    #         ds.append({'名称': n, '链接': u})
+    #     return ds

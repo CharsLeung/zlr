@@ -8,6 +8,8 @@ datetime = 2020/5/8 0008 下午 17:02
 from = office desktop
 """
 import warnings
+import pandas as pd
+
 from Graph.entity import BaseEntity
 
 
@@ -26,28 +28,20 @@ class Related(BaseEntity):
     index = [('NAME',)]
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of case involveder.')
-                    self.BaseAttributes[k] = v
-
+        BaseEntity.__init__(self, **kwargs)
         if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.parser_url(
-                self.BaseAttributes['URL'])
-            if self.BaseAttributes['URL'] is None:
-                if len(self.BaseAttributes['NAME']) < 2:
-                    self.BaseAttributes['NAME'] = None
-        # if sum([1 if v is not None else 0 for v in
-        #         self.BaseAttributes.values()]):
-        #     self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
-        # else:
-        #     self.BaseAttributes['HASH_ID'] = None
+            self['URL'] = self.parser_url(self['URL'])
+            if self['URL'] is None:
+                if len(self['NAME']) < 2:
+                    self['NAME'] = None
+                else:
+                    self['URL'] = '%s_%s' % (
+                        self.label,
+                        self.getHashValue(str(self.BaseAttributes))
+                    )
+        pass
+
+    def to_pandas(self, nodes, **kwargs):
+        return BaseEntity.to_pandas(
+            self, nodes, drop_suspicious=True, tolerate=3)
         pass

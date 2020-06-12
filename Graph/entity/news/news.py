@@ -33,22 +33,11 @@ class News(BaseEntity):
     primarykey = 'URL'
 
     def __init__(self, **kwargs):
-        BaseEntity.__init__(self)
-        if len(kwargs):
-            sks = self.synonyms.keys()
-            cad = self.chineseAttributeDict()
-            for k, v in zip(kwargs.keys(), kwargs.values()):
-                if k in cad.keys():
-                    self.BaseAttributes[cad[k]] = v
-                elif k in sks:
-                    self.BaseAttributes[cad[self.synonyms[k]]] = v
-                else:
-                    warnings.warn('Undefined key for dict of app.')
-                    self.BaseAttributes[k] = v
-        # self.BaseAttributes['HASH_ID'] = hash(str(self.BaseAttributes))
+        BaseEntity.__init__(self, **kwargs)
+        # self['HASH_ID'] = hash(str(self.BaseAttributes))
         if 'URL' in self.BaseAttributes.keys():
-            self.BaseAttributes['URL'] = self.format_url(
-                self.BaseAttributes['URL'])
+            self['URL'] = self.format_url(
+                self['URL'])
         pass
 
     @classmethod
@@ -63,9 +52,9 @@ class News(BaseEntity):
         def f(c):
             # del c['序号']
             # _ = c.pop('新闻')
-            if '关联对象' in c.keys():
+            if c.get('关联对象') is not None:
                 c['关联对象'] = [_.strip() for _ in c.pop('关联对象').split('\n')]
-            if '标签' in c.keys():
+            if c.get('标签') is not None:
                 c['标签'] = c['标签'] if len(c['标签']) else []
             # c['新闻标题'] = _['标题']
             # c['新闻链接'] = _['链接']

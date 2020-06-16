@@ -859,7 +859,7 @@ class JusGraph(BaseGraph):
                 'metaModel': '法律诉讼',
                 # 'name': '重庆合文贸易有限公司'
             },
-            limit=100000,
+            # limit=10000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0

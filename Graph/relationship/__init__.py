@@ -9,6 +9,7 @@ IDE = PyCharm
 """
 from Graph.relationship.base import Base
 from Graph.relationship.have import Have
+from Graph.relationship.belong import Belong
 from Graph.relationship.be_in_office import BeInOffice
 from Graph.relationship.located import Located
 from Graph.relationship.legal_rep import LegalRep
@@ -41,6 +42,7 @@ def relationships(name=None):
     #     print('"{}": {},'.format(__.label, str(__.__class__.__name__)))
     rsp = {
         "HAVE": Have(),
+        'BELONG': Belong(),
         "BE_IN_OFFICE": BeInOffice(),
         "LOCATED": Located(),
         "LEGAL_REP": LegalRep(),

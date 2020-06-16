@@ -925,7 +925,8 @@ class EtpGraph(BaseGraph):
                 'metaModel': '基本信息',
                 # 'name': '重庆长寿城乡商贸总公司'   # {'$in': ns['name'].tolist()}
             },
-            limit=100000,
+            # limit=10000,
+            skip=290000,
             no_cursor_timeout=True)
         i, j = 0, 0
         nc, rc = 0, 0

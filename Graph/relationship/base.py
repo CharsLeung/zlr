@@ -62,6 +62,8 @@ class Base:
     @staticmethod
     def append(data, header_path, data_path):
         # 只适用于头文件分离模式
+        if len(data) == 0:
+            return
         if os.path.exists(header_path):
             # 头文件存在，需要根据头文件的列名顺序追加数据
             with open(header_path, 'r+', encoding='utf-8') as f:
@@ -76,7 +78,12 @@ class Base:
                 if update:
                     f.write(','.join(exist_header))
                     print('update header file:{}'.format(header_path))
-                data = data.loc[:, exist_header]
+                try:
+                    data = data.loc[:, exist_header]
+                except Exception as e:
+                    print(e)
+                    print(new_header)
+                    print(exist_header)
                 data.to_csv(data_path, index=False,
                             header=False, mode='a')
                 pass

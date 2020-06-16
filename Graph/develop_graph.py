@@ -183,7 +183,7 @@ class DvpGraph(BaseGraph):
                                 '融资信息': d.pop('融资信息'),
                                 '所属地': d.pop('所属地'),
                             }
-                            etp_n_2 = Related(**etp_2['链接', '名称'])
+                            etp_n_2 = Related(**{'链接': etp_2['链接'], '名称': etp_2['名称']})
                         # etp_n_2 = Related(**_)
                         etp_n_2 = self.get_neo_node(etp_n_2)
                     nodes.append(etp_n_2)
@@ -197,7 +197,7 @@ class DvpGraph(BaseGraph):
         enterprises = self.base.query(
             sql={'metaModel': '企业发展'},
             field={'name': 1, 'url': 1, 'content.竞品信息': 1},
-            limit=100000,
+            # limit=10000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0

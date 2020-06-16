@@ -18,13 +18,28 @@ class Industry(BaseEntity):
     """
 
     ATTRIBUTES = [
-        ['行业名称', 'NAME'],
-        ['行业代码', 'CODE']
+        ['名称', 'NAME'],
+        ['代码', 'CODE'],
+        ['类别', 'TYPE']
     ]
+
+    synonyms = {
+        '行业': '行业',
+        '行业名称': '行业',
+        'Industry': '行业',
+        '行业代码': '代码',
+        'IndustryCode': '代码',
+    }
+
+    primarykey = 'CODE'
+    index = [('NAME', )]
 
     def __init__(self, name=None, code=None, **kwargs):
         BaseEntity.__init__(self, **kwargs)
-        self['NAME'] = name if name is not None else None
-        self['CODE'] = code if code is not None else None
+        if name is not None:
+            self['NAME'] = name
+        if code is not None:
+            self['CODE'] = code
         pass
+
 

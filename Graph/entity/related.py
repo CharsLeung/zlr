@@ -32,7 +32,7 @@ class Related(BaseEntity):
         if 'URL' in self.BaseAttributes.keys():
             self['URL'] = self.parser_url(self['URL'])
             if self['URL'] is None:
-                if len(self['NAME']) < 2:
+                if self['NAME'] is None or len(self['NAME']) < 2:
                     self['NAME'] = None
                 else:
                     self['URL'] = '%s_%s' % (

@@ -21,6 +21,7 @@ from Graph.operating_graph import OptGraph
 from Graph.news_graph import NewsGraph
 from Graph.develop_graph import DvpGraph
 from Graph.rights_graph import RightsGraph
+from Graph.industry_graph import IndGraph
 
 # def getEntityUniqueCodeSYX(data, flag):
 #     data['URL'] = data.URL.map(
@@ -166,6 +167,24 @@ def runNewsGraph():
 # runNewsGraph()
 
 
+def runIdsGraph():
+    gp = IndGraph()
+
+    def getNodesAndRelations():
+        nodes, rps = gp.get_all_nodes_and_relationships(
+            import_path, mode='a')
+        pass
+
+    getNodesAndRelations()
+    # og.create_all_relationship()
+    if len(gp.logs):
+        gp.save_logs('D:\graph_data\graph_run_logs_for_ids.csv')
+    pass
+
+
+# runIdsGraph()
+
+
 def f3():
     jtg = JusRulingTextGraph()
     jtg.create_all_relationship()
@@ -209,7 +228,7 @@ def check():
             ed = etp.read_csv(ep, ep)
             etp_data.append(ed)
         etp_data = pd.concat(etp_data)
-        etp_data.drop_duplicates(['URL:ID'], inplace=True)
+        etp_data.drop_duplicates(['URL:ID(Enterprise)'], inplace=True)
         etp_data.reset_index(drop=True, inplace=True)
         total = len(etp_data)
 
@@ -246,16 +265,16 @@ def check():
         rel_data = pd.concat(rel_data)
         # rel_data.drop_duplicates(['URL:ID'], inplace=True)
 
-        drop = rel_data.loc[:, ['URL:ID', 'NAME']]
+        drop = rel_data.loc[:, ['URL:ID(Related)', 'NAME']]
         drop['count'] = 1
-        drop = drop.groupby(['URL:ID'], as_index=False).agg({
+        drop = drop.groupby(['URL:ID(Related)'], as_index=False).agg({
             'count': 'count', 'NAME': 'first'
         })
         drop = drop[(drop['count'] > 3) & (drop['NAME'].str.len() < 4)]
-        drop = drop['URL:ID']
+        drop = drop['URL:ID(Related)']
         # drop = drop.tolist()
         if len(drop):
-            rel_data = rel_data[~rel_data['URL:ID'].isin(drop)]
+            rel_data = rel_data[~rel_data['URL:ID(Related)'].isin(drop)]
         rel.to_csv(rel_data, import_path, split_header=True)
         pass
 
@@ -263,7 +282,7 @@ def check():
     pass
 
 
-# check()
+check()
 
 
 def getImportCSV():
@@ -281,30 +300,43 @@ def getImportCSV():
                 # File.rename(p, p.replace('(', '_').replace(')', ''))
             else:
                 print(p)
-    # for np in n_fps:
-    #     if 'Header' in np:
-    #         print(np)
-    # print('-' * 60)
-    # for np in n_fps:
-    #     if 'Header' not in np:
-    #         print(np)
-    print('-'*60)
-    for rp in r_fps:
-        if 'Header' in rp:
-            print(rp)
+    for np in n_fps:
+        if 'Header' in np:
+            print(np)
+            dst = np.replace(import_path, 'D:\G')
+            File.move_file(np, )
     print('-' * 60)
-    for rp in r_fps:
-        if 'Header' not in rp:
-            print(rp)
+    for np in n_fps:
+        if 'Header' not in np:
+            print(np)
+    # print('-'*60)
+    # for rp in r_fps:
+    #     if 'Header' in rp:
+    #         print(rp)
+    # print('-' * 60)
+    # for rp in r_fps:
+    #     if 'Header' not in rp:
+    #         print(rp)
     pass
 
 
 # getImportCSV()
 
 
-def run():
-    import os
-    with open(r'D:\neo4j-community-3.5.14\bin\import.bat', 'r+', encoding='utf-8') as f:
-        cmd = f.readline()
-        os.system(cmd)
+def mapping():
+    ns = pd.read_excel(r'D:\neo4j-community-3.5.14\import\neo4j-admin-import.xlsx',
+                       sheet_name='实体')
+    for i, r in ns.iterrows():
+        File.copy_file(r['头文件路径'], r['头文件映射路径'])
+        File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
+        pass
+    rs = pd.read_excel(r'D:\neo4j-community-3.5.14\import\neo4j-admin-import.xlsx',
+                       sheet_name='关系')
+    for i, r in rs.iterrows():
+        File.copy_file(r['头文件路径'], r['头文件映射路径'])
+        File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
+        pass
     pass
+
+
+# mapping()

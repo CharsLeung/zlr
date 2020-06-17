@@ -400,7 +400,7 @@ class RightsGraph(BaseGraph):
                 'metaModel': '知识产权',
                 # 'name': '重庆轩烽建材有限公司'
             },
-            # limit=10000,
+            limit=100000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0

@@ -197,7 +197,7 @@ class DvpGraph(BaseGraph):
         enterprises = self.base.query(
             sql={'metaModel': '企业发展'},
             field={'name': 1, 'url': 1, 'content.竞品信息': 1},
-            # limit=10000,
+            limit=100000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0

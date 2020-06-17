@@ -118,7 +118,7 @@ class SXEnforcement(BaseEntity):
             #     '执行法院': c['发布日期'],
             #     '履行情况': c['立案日期']
             # }
-            return dict(sxexecuted=Enforcement(**c))
+            return dict(sxexecuted=SXEnforcement(**c))
             pass
 
         if isinstance(content, dict):

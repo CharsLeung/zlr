@@ -248,7 +248,7 @@ def check():
         etp.to_csv(etp_data, import_path, split_header=True)
         pass
 
-    func1()
+    # func1()
 
     def func2():
         # 处理Related
@@ -278,11 +278,11 @@ def check():
         rel.to_csv(rel_data, import_path, split_header=True)
         pass
 
-    # func2()
+    func2()
     pass
 
 
-check()
+# check()
 
 
 def getImportCSV():
@@ -303,20 +303,20 @@ def getImportCSV():
     for np in n_fps:
         if 'Header' in np:
             print(np)
-            dst = np.replace(import_path, 'D:\G')
-            File.move_file(np, )
+            # dst = np.replace(import_path, 'D:\G')
+            # File.move_file(np, )
     print('-' * 60)
     for np in n_fps:
         if 'Header' not in np:
             print(np)
-    # print('-'*60)
-    # for rp in r_fps:
-    #     if 'Header' in rp:
-    #         print(rp)
-    # print('-' * 60)
-    # for rp in r_fps:
-    #     if 'Header' not in rp:
-    #         print(rp)
+    print('-'*60)
+    for rp in r_fps:
+        if 'Header' in rp:
+            print(rp)
+    print('-' * 60)
+    for rp in r_fps:
+        if 'Header' not in rp:
+            print(rp)
     pass
 
 
@@ -327,14 +327,22 @@ def mapping():
     ns = pd.read_excel(r'D:\neo4j-community-3.5.14\import\neo4j-admin-import.xlsx',
                        sheet_name='实体')
     for i, r in ns.iterrows():
-        File.copy_file(r['头文件路径'], r['头文件映射路径'])
-        File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
+        if r['头文件路径'].replace('_Header', '') != r['数据文件路径']:
+            print('error')
+            print(r['数据文件路径'])
+        else:
+            File.copy_file(r['头文件路径'], r['头文件映射路径'])
+            File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
         pass
     rs = pd.read_excel(r'D:\neo4j-community-3.5.14\import\neo4j-admin-import.xlsx',
                        sheet_name='关系')
     for i, r in rs.iterrows():
-        File.copy_file(r['头文件路径'], r['头文件映射路径'])
-        File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
+        if r['头文件路径'].replace('_Header', '') != r['数据文件路径']:
+            print('error')
+            print(r['数据文件路径'])
+        else:
+            File.copy_file(r['头文件路径'], r['头文件映射路径'])
+            File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
         pass
     pass
 

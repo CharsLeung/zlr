@@ -166,8 +166,8 @@ class NewsGraph(BaseGraph):
                 'metaModel': '公司新闻',
                 # 'name': '重庆轩烽建材有限公司'
             },
-            # limit=10000,
-            skip=100000,
+            limit=10000,
+            # skip=100000,
             no_cursor_timeout=True)
         i, j = 0, 0
         nc, rc = 0, 0

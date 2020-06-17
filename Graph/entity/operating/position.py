@@ -33,13 +33,13 @@ class Position(BaseEntity):
         BaseEntity.__init__(self, **kwargs)
         # self['HASH_ID'] = hash(str(self.BaseAttributes))
         if 'URL' in self.BaseAttributes.keys():
-            self['URL'] = self.parser_url(self['URL'])
+            # self['URL'] = self.parser_url(self['URL'])
             if self['URL'] is None:
-                if self['NAME'] is None or len(self['NAME']) < 2:
-                    self['NAME'] = None
+                if self['POSITION'] is None or len(self['POSITION']) < 2:
+                    self['POSITION'] = None
                 else:
                     self['URL'] = 'Position_%s' % self.getHashValue(
-                        self['NAME'])
+                        self['POSITION'])
         pass
 
     def to_pandas(self, nodes, **kwargs):

@@ -734,7 +734,7 @@ class EtpGraph(BaseGraph):
                                          'holder Neo node', 'ERROR', etp['NAME'])
                     if sh_n is not None:
                         nodes.append(sh_n)
-                        rps.append(Share(sh_n, etp_n, **s))
+                        rps.append(Share(etp_n, sh_n, **s))
         except Exception as e:
             ExceptionInfo(e)
             self.to_logs('deal share holder raise ({})'.format(e),
@@ -925,8 +925,8 @@ class EtpGraph(BaseGraph):
                 'metaModel': '基本信息',
                 # 'name': '重庆长寿城乡商贸总公司'   # {'$in': ns['name'].tolist()}
             },
-            # limit=10000,
-            skip=290000,
+            limit=100000,
+            # skip=290000,
             no_cursor_timeout=True)
         i, j = 0, 0
         nc, rc = 0, 0

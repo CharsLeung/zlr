@@ -232,7 +232,7 @@ class DeliveryAnnounce(BaseEntity):
             defendant = split_case_identity(defendant)
             plaintiff = c.pop('公诉人/原告/上诉人/申请人')
             plaintiff = split_case_identity(plaintiff)
-            ca = CourtAnnounce(**c)
+            ca = DeliveryAnnounce(**c)
             return dict(defendant=defendant, plaintiff=plaintiff, announce=ca)
 
         if isinstance(content, dict):

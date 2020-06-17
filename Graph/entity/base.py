@@ -166,13 +166,13 @@ class BaseEntity:
                 exist_header = f.readline()
                 exist_header = exist_header.split(',')
                 new_header = list(data.columns)
-                update = False
+                update = []
                 for h in new_header:
                     if h not in exist_header:
                         exist_header.append(h)
-                        update = True
-                if update:
-                    f.write(','.join(exist_header))
+                        update.append(h)
+                if len(update):
+                    f.write(',' + ','.join(update))
                     print('update header file:{}'.format(header_path))
                 try:
                     data = data.loc[:, exist_header]

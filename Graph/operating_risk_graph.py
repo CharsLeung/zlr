@@ -932,8 +932,8 @@ class OptRiskGraph(BaseGraph):
                 'metaModel': '经营风险',
                 # 'name': '重庆轩烽建材有限公司'
             },
-            # limit=10000,
-            skip=90000,
+            limit=100000,
+            # skip=90000,
             no_cursor_timeout=True)
         i, j = 0, 0
         nc, rc = 0, 0

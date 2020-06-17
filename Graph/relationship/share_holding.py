@@ -27,7 +27,7 @@ class Share(Base):
         ['最终受益股份', 'ULTIMATE_RATIO']
     ]
 
-    def __init__(self, holder=None, enterprise=None, **kwargs):
+    def __init__(self, enterprise=None, holder=None, **kwargs):
         properties = {}
         ks = kwargs.keys()
         for a in self.ATTRIBUTES:
@@ -59,5 +59,5 @@ class Share(Base):
                 ), 4)
             except Exception:
                 properties['ULTIMATE_RATIO'] = None
-        Base.__init__(self, holder, enterprise, **properties)
+        Base.__init__(self, enterprise, holder, **properties)
         pass

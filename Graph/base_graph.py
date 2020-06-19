@@ -13,17 +13,19 @@ import datetime as dt
 
 from Calf.threading import Thread
 from Graph.entity import BaseEntity
+from Graph.logger import logger
 from py2neo import Graph, NodeMatcher, RelationshipMatcher, Subgraph
 
 
 class BaseGraph:
 
     def __init__(self, db_uri='http://localhost:7474',
-                 username='neo4j', password='12345'
-                 ):
+                 username='neo4j', password='12345',
+                 log_save_path=None, **kwargs):
         self.graph = Graph(db_uri, username=username, password=password)
         self.NodeMatcher = NodeMatcher(self.graph)
         self.RelationshipMatcher = RelationshipMatcher(self.graph)
+        self.logger = logger(self.label, save_path=log_save_path)
         self.logs = []
         self.index_and_constraint_statue = False
         pass
@@ -31,19 +33,6 @@ class BaseGraph:
     @property
     def label(self):
         return str(self.__class__.__name__)
-
-    def to_logs(self, info, tp='LOG', name=''):
-        self.logs.append({
-            'datetime': dt.datetime.now(),
-            'info': info,
-            'type': tp,
-            'name': name
-        })
-
-    def save_logs(self, path):
-        logs = pd.DataFrame(self.logs)
-        logs.to_csv(path, index=False)
-        pass
 
     def match_node(self, *labels, cypher=None):
         """
@@ -80,8 +69,8 @@ class BaseGraph:
                 tx.merge(Subgraph(nodes=nodes))
                 tx.commit()
         except Exception as e:
-            self.to_logs('commit subgraph to database raise ({})'.format(e),
-                         'EXCEPTION')
+            self.logger.debug('commit subgraph to database '
+                              'raise ({})'.format(e))
             l = len(nodes)
             if l < toleration:
                 return
@@ -94,9 +83,8 @@ class BaseGraph:
                         tx.merge(Subgraph(nodes=nds))
                         tx.commit()
                 except Exception as e:
-                    self.to_logs('commit subgraph to database raise ({}) on '
-                                 '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
-                                 'EXCEPTION')
+                    self.logger.debug('commit subgraph to database raise ({}) on '
+                                      '[{}:{}]'.format(e, i * bk, (i + 1) * bk))
                     self.graph_merge_nodes(nds, toleration)
 
     def merge_relationships(self, relationships=None,
@@ -117,8 +105,7 @@ class BaseGraph:
                 tx.commit()
         except Exception as e:
             print(e)
-            self.to_logs('commit subgraph to database raise ({})'.format(e),
-                         'EXCEPTION', name=str(kwargs))
+            self.logger.debug('commit subgraph to database raise ({})'.format(e))
             l = len(relationships)
             if l < toleration:
                 return
@@ -131,9 +118,8 @@ class BaseGraph:
                         tx.merge(Subgraph(relationships=rps))
                         tx.commit()
                 except Exception as e:
-                    self.to_logs('commit subgraph to database raise ({}) on '
-                                 '[{}:{}]'.format(e, i * bk, (i + 1) * bk),
-                                 'EXCEPTION', name=str(kwargs))
+                    self.logger.debug('commit subgraph to database raise ({}) on '
+                                      '[{}:{}]'.format(e, i * bk, (i + 1) * bk))
                     self.merge_relationships(rps, toleration, **kwargs)
             pass
 
@@ -174,12 +160,12 @@ class BaseGraph:
                     for c in cst:
                         if c not in cst0:
                             self.graph.schema.create_uniqueness_constraint(l, c)
-                            print('success to create constraint for '
-                                  '{}({})'.format(l, c))
+                            self.logger.info('success to create constraint for '
+                                             '{}({})'.format(l, c))
                         # self.graph.schema.create_uniqueness_constraint(l, c)
                 else:
-                    print('failed create constraint for {}, '
-                          'this label not in db.'.format(l))
+                    self.logger.info('failed create constraint for {}, '
+                                     'this label not in db.'.format(l))
                     self.index_and_constraint_statue = False
             pass
         if index is not None:
@@ -193,11 +179,11 @@ class BaseGraph:
                                 f = False
                         if f:
                             self.graph.schema.create_index(l, *i)
-                            print('success to create index for '
-                                  '{}({})'.format(l, ','.join(i)))
+                            self.logger.info('success to create index for '
+                                             '{}({})'.format(l, ','.join(i)))
                 else:
-                    print('failed create index for label({}){}, '
-                          'this label not in db.'.format(l, idx))
+                    self.logger.info('failed create index for label({}){}, '
+                                     'this label not in db.'.format(l, idx))
                     self.index_and_constraint_statue = False
         pass
 
@@ -216,17 +202,16 @@ class BaseGraph:
             for n_ in node:
                 n = n_.get_neo_node(primarykey=n_.primarykey)
                 if n is None:
-                    self.to_logs('filed initialize {} Neo node'.format(
-                        n_.label), 'ERROR')
+                    self.logger.debug('filed initialize {}'.format(n_))
+                    pass
                 else:
                     nodes.append(n)
             return nodes
         else:
             n = node.get_neo_node(primarykey=node.primarykey)
             if n is None or n.__primarykey__ is None:
-                print('<->', node)
-                self.to_logs('filed initialize {} Neo node'.format(
-                    node.label), 'ERROR')
+                self.logger.debug('filed initialize {}'.format(node))
+                pass
             return n
 
     def save_graph(self, folder, nodes, rps, mode='w'):
@@ -236,28 +221,27 @@ class BaseGraph:
         # nodes, rps = eg.get_all_nodes_and_relationships()
         nodes_save_folder = os.path.join(folder, self.label, 'nodes')
         File.check_file(nodes_save_folder)
-        print('save graph data(mode={}):'.format(mode))
-        print(' nodes:')
+        self.logger.info('save graph data(mode={}):'.format(mode))
+        self.logger.info(' nodes:')
         nc = 0
         for k, _nds_ in zip(nodes.keys(), nodes.values()):
             ne = entities(k)
             _nds_ = ne.to_pandas(_nds_, )
             _nds_ = ne.getImportCSV(_nds_)
             count = ne.to_csv(_nds_, nodes_save_folder, True, mode)
-            print('     {} {}'.format(count, k))
+            self.logger.info('     {} {}'.format(count, k))
             nc += count
             pass
         rps_save_folder = os.path.join(folder, self.label, 'relationships')
         File.check_file(rps_save_folder)
-        print(' relationships:')
+        self.logger.info(' relationships:')
         rc = 0
         for k, _rps_ in zip(rps.keys(), rps.values()):
             rel = relationships(k)
             _rps_ = rel.to_pandas(_rps_, )
             _rps_ = rel.getImportCSV(_rps_)
             count = rel.to_csv(_rps_, rps_save_folder, True, mode)
-            print('     {} {}'.format(count, k))
+            self.logger.info('     {} {}'.format(count, k))
             rc += count
             pass
         return nc, rc
-

@@ -25,3 +25,20 @@ def create_address():
     neo4j-admin import --database=graph.db --nodes=D:\neo4j-community-3.5.14\import\图数据\基本信息\实体\Person.csv --nodes=D:\neo4j-community-3.5.14\import\图数据\基本信息\实体\Enterprise.csv --relationships=D:\neo4j-community-3.5.14\import\图数据\基本信息\关系\BE_IN_OFFICE.csv --relationships=D:\neo4j-community-3.5.14\import\图数据\基本信息\关系\LEGAL_REP.csv --multiline-fields=true --ignore-duplicate-nodes=true --ignore-missing-nodes=true
     :return:
     """
+    pass
+
+
+def create_index():
+    from Graph.entity import entities
+
+    index = {}
+    used_entity = entities()
+    for et in used_entity.values():
+        idx = et.index
+        if len(idx):
+            print('create index on: {}({})'.format(et.label, idx[0][0]))
+
+        pass
+
+
+# create_index()

@@ -7,7 +7,9 @@ author = 'Administrator'
 datetime = '2020/3/24 0024 下午 14:25'
 from = 'office desktop' 
 """
+import time
 import datetime as dt
+
 from Graph import BaseGraph
 from Calf.data import BaseModel
 from Graph.exception import ExceptionInfo, SuccessMessage
@@ -24,8 +26,8 @@ from Graph.relationship import SuperiorAgency
 
 class EtpGraph(BaseGraph):
 
-    def __init__(self):
-        BaseGraph.__init__(self)
+    def __init__(self, **kwargs):
+        BaseGraph.__init__(self, **kwargs)
         self.base = BaseModel(
             tn='cq_all',
             # location='local2',
@@ -658,8 +660,8 @@ class EtpGraph(BaseGraph):
         nodes, rps = [], []
         etp_n = self.get_neo_node(etp)
         if etp_n is None:
-            self.to_logs('filed initialize enterprise Neo node',
-                         'ERROR', etp['NAME'])
+            self.logger.debug('{} filed initialize enterprise '
+                              'Neo node'.format(etp['NAME']))
             return nodes, rps
         nodes.append(etp_n)
         try:
@@ -672,15 +674,16 @@ class EtpGraph(BaseGraph):
             if lr_n is None:
                 lr_n = self.get_neo_node(lr)
             if lr_n is None:
-                self.to_logs('filed initialize legal representative Neo node',
-                             'ERROR', etp['NAME'])
+                self.logger.debug('{} filed initialize legal representative '
+                                  'Neo node'.format(etp['NAME']))
             else:
                 nodes.append(lr_n)
                 rps.append(LegalRep(lr_n, etp_n))
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal legal representative raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal legal representative raise '
+                              '({})'.format(etp['NAME'], e),
+                              exc_info=True)
         try:
             ms = etp.get_manager()
             if len(ms):
@@ -689,26 +692,28 @@ class EtpGraph(BaseGraph):
                     m_n = m.pop('person')
                     m_n = self.get_neo_node(m_n)
                     if m_n is None:
-                        self.to_logs('filed initialize major manager Neo node',
-                                     'ERROR', etp['NAME'])
+                        self.logger.debug('{} filed initialize major manager '
+                                          'Neo node'.format(etp['NAME']))
                     else:
                         nodes.append(m_n)
                         rps.append(BeInOffice(m_n, etp_n, **m))
         except Exception as e:
-            self.to_logs('deal major managers raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal major managers raise '
+                              '({})'.format(etp['NAME'], e),
+                              exc_info=True)
         try:
             dz = etp.get_address()
             dz_n = self.get_neo_node(dz)
             if dz_n is None:
-                self.to_logs('filed initialize address Neo node',
-                             'ERROR', etp['NAME'])
+                self.logger.debug('{} filed initialize address '
+                                  'Neo node'.format(etp['NAME']))
             else:
                 nodes.append(dz_n)
                 rps.append(Located(etp_n, dz_n))
         except Exception as e:
-            self.to_logs('deal address raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal address raise '
+                              '({})'.format(etp['NAME'], e),
+                              exc_info=True)
 
         try:
             sh = etp.get_share_holder()
@@ -730,15 +735,15 @@ class EtpGraph(BaseGraph):
                         # 创建这个意外的股东
                         sh_n = self.get_neo_node(s_)
                         if sh_n is None:
-                            self.to_logs('filed initialize unexpected share '
-                                         'holder Neo node', 'ERROR', etp['NAME'])
+                            self.logger.debug('{} filed initialize unexpected share '
+                                              'holder Neo node'.format(etp['NAME']))
                     if sh_n is not None:
                         nodes.append(sh_n)
                         rps.append(Share(etp_n, sh_n, **s))
         except Exception as e:
-            ExceptionInfo(e)
-            self.to_logs('deal share holder raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal share holder raise '
+                              '({})'.format(etp['NAME'], e),
+                              exc_info=True)
 
         try:
             tel = etp.get_telephone_number()
@@ -749,16 +754,16 @@ class EtpGraph(BaseGraph):
             else:
                 tel_n = self.get_neo_node(tel)
                 if tel_n is None:
-                    self.to_logs('filed initialize telephone Neo node',
-                                 'ERROR', etp['NAME'])
+                    self.logger.debug('{} filed initialize telephone '
+                                      'Neo node'.format(etp['NAME']))
                 else:
                     nodes.append(tel_n)
                     rps.append(Have(etp_n, tel_n))
             pass
         except Exception as e:
-            ExceptionInfo(e)
-            self.to_logs('deal telephone number raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal telephone number raise '
+                              '({})'.format(etp['NAME'], e),
+                              exc_info=True)
 
         try:
             eml = etp.get_email()
@@ -769,16 +774,16 @@ class EtpGraph(BaseGraph):
             else:
                 eml_n = self.get_neo_node(eml)
                 if eml_n is None:
-                    self.to_logs('filed initialize email Neo node',
-                                 'ERROR', etp['NAME'])
+                    self.logger.debug('{} filed initialize email '
+                                      'Neo node'.format(etp['NAME']))
                 else:
                     nodes.append(eml_n)
                     rps.append(Have(etp_n, eml_n))
             pass
         except Exception as e:
-            ExceptionInfo(e)
-            self.to_logs('deal email raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.debug('{} deal email raise ({})'
+                              ''.format(etp['NAME'], e),
+                              exc_info=True)
         try:
             ivs = etp.get_invest_outer()
             if len(ivs):
@@ -793,15 +798,15 @@ class EtpGraph(BaseGraph):
                     if iv_n is None:
                         iv_n = self.get_neo_node(iv_)
                         if iv_n is None:
-                            self.to_logs('filed initialize unexpected invested '
-                                         'Neo node', 'ERROR', etp['NAME'])
+                            self.logger.debug('{} filed initialize unexpected invested '
+                                              'Neo node'.format(etp['NAME']))
                             continue
                     nodes.append(iv_n)
                     rps.append(Investing(etp_n, iv_n, **iv))
         except Exception as e:
-            ExceptionInfo(e)
-            self.to_logs('deal invest raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal invest raise ({})'
+                              ''.format(etp['NAME'], e),
+                              exc_info=True)
         try:
             brs = etp.get_branch()
             if len(brs):
@@ -816,8 +821,8 @@ class EtpGraph(BaseGraph):
                     if b_n is None:
                         b_n = self.get_neo_node(b_)
                         if b_n is None:
-                            self.to_logs('filed initialize unexpected branch '
-                                         'Neo node', 'ERROR', etp['NAME'])
+                            self.logger.debug('{} filed initialize unexpected branch '
+                                              'Neo node'.format(etp['NAME']))
                             continue
                         p_ = b['principal']
                         p_n = self.get_neo_node(p_)
@@ -830,9 +835,9 @@ class EtpGraph(BaseGraph):
                         etp_n, b_n, **b
                     ))
         except Exception as e:
-            ExceptionInfo(e)
-            self.to_logs('deal branch raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal branch raise ({})'
+                              ''.format(etp['NAME'], e),
+                              exc_info=True)
         try:
             hcs = etp.get_head_company()
             if len(hcs):
@@ -847,8 +852,8 @@ class EtpGraph(BaseGraph):
                     if h_n is None:
                         h_n = self.get_neo_node(h_)
                         if h_n is None:
-                            self.to_logs('filed initialize unexpected head '
-                                         'company Neo node', 'ERROR', etp['NAME'])
+                            self.logger.debug('filed initialize unexpected head '
+                                              'company Neo node'.format(etp['NAME']))
                             continue
                         p_ = h['principal']
                         p_n = self.get_neo_node(p_)
@@ -861,9 +866,9 @@ class EtpGraph(BaseGraph):
                         etp_n, h_n, **h
                     ))
         except Exception as e:
-            ExceptionInfo(e)
-            self.to_logs('deal head company raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal head company raise ({})'
+                              ''.format(etp['NAME'], e),
+                              exc_info=True)
         try:
             cps = etp.get_construction_project()
             if len(cps):
@@ -871,8 +876,8 @@ class EtpGraph(BaseGraph):
                     c_ = c.pop('project')
                     c_n = self.get_neo_node(c_)
                     if c_n is None:
-                        self.to_logs('filed initialize unexpected construction '
-                                     'project Neo node', 'ERROR', etp['NAME'])
+                        self.logger.debug('filed initialize unexpected construction '
+                                          'project Neo node'.format(etp['NAME']))
                         continue
                     jsdw = c.pop('jsdw')
                     # 查询这个建设单位是否已经存在
@@ -884,8 +889,8 @@ class EtpGraph(BaseGraph):
                     if j_n is None:
                         j_n = self.get_neo_node(jsdw)
                         if j_n is None:
-                            self.to_logs('filed initialize unexpected construction '
-                                         'agency Neo node', 'ERROR', etp['NAME'])
+                            self.logger.debug('filed initialize unexpected construction '
+                                              'agency Neo node'.format(etp['NAME']))
                             continue
                     # TODO(lj):需要考虑是否将承建、建设单独列为一种关系
                     nodes.append(c_n)
@@ -897,9 +902,9 @@ class EtpGraph(BaseGraph):
                         j_n, c_n, **dict(角色='建设单位', **c)
                     ))
         except Exception as e:
-            ExceptionInfo(e)
-            self.to_logs('deal construction project raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('{} deal construction project raise ({})'
+                              ''.format(etp['NAME'], e),
+                              exc_info=True)
         try:
             ccs = etp.get_construction_certificate()
             if len(ccs):
@@ -907,15 +912,16 @@ class EtpGraph(BaseGraph):
                     c_ = c.pop('ctf')
                     c_n = self.get_neo_node(c_)
                     if c_n is None:
-                        self.to_logs('filed initialize unexpected construction '
-                                     'certificate Neo node', 'ERROR', etp['NAME'])
+                        self.logger.debug('filed initialize unexpected construction '
+                                          'certificate Neo node'.format(etp['NAME']))
                         continue
                     nodes.append(c_n)
                     rps.append(Have(etp_n, c_n, **c))
         except Exception as e:
             ExceptionInfo(e)
-            self.to_logs('deal construction certificate raise ({})'.format(e),
-                         'EXCEPTION', etp['NAME'])
+            self.logger.error('deal construction certificate raise ({})'
+                              ''.format(etp['NAME'], e),
+                              exc_info=True)
         return nodes, rps
 
     def get_all_nodes_and_relationships(
@@ -925,7 +931,7 @@ class EtpGraph(BaseGraph):
                 'metaModel': '基本信息',
                 # 'name': '重庆长寿城乡商贸总公司'   # {'$in': ns['name'].tolist()}
             },
-            limit=100000,
+            # limit=100000,
             # skip=290000,
             no_cursor_timeout=True)
         i, j = 0, 0
@@ -933,6 +939,7 @@ class EtpGraph(BaseGraph):
         etp_count = enterprises.count()
         # etp_count = 1000
         nodes, relationships = {}, {}
+        _st_ = time.time()
         for ep in enterprises:
             try:
                 i += 1
@@ -956,8 +963,8 @@ class EtpGraph(BaseGraph):
                         relationships[_rps_['label']] = [_rps_]
                     pass
             except Exception as e:
-                ExceptionInfo(e)
-                print(ep['name'])
+                self.logger.error('{} {}'.format(e, ep['name']),
+                                  exc_info=True)
                 continue
             if i % 10000 == 0:
                 j += 1
@@ -969,11 +976,12 @@ class EtpGraph(BaseGraph):
                     rc += _rc_
                     nodes.clear()
                     relationships.clear()
-                print(SuccessMessage(
-                    '{}:success trans data to csv '
-                    'round {} and deal {}/{} enterprise'
-                    ''.format(dt.datetime.now(), j, i, etp_count)
+                self.logger.info(SuccessMessage(
+                    'success trans data to csv round {} and '
+                    'deal {}/{} enterprise spend {} seconds.'
+                    ''.format(j, i, etp_count, int(time.time() - _st_))
                 ))
+                _st_ = time.time()
                 pass
         if save_folder is not None:
             _nc_, _rc_ = self.save_graph(
@@ -983,9 +991,9 @@ class EtpGraph(BaseGraph):
             rc += _rc_
             nodes.clear()
             relationships.clear()
-            print('Summary:')
-            print(' save graph data:')
-            print('   {} nodes'.format(nc))
-            print('   {} relationships'.format(rc))
+            self.logger.info('Summary:')
+            self.logger.info(' save graph data:')
+            self.logger.info('   {} nodes'.format(nc))
+            self.logger.info('   {} relationships'.format(rc))
             pass
         return nodes, relationships

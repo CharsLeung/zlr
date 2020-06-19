@@ -22,7 +22,7 @@ class Base:
 
     ATTRIBUTES = []
 
-    name_pattern = re.compile('[A-Z]+[a-z]+')
+    label_pattern = re.compile('[A-Z]+[a-z]+')
 
     def __init__(self, start=None, end=None, **kwargs):
         self.start = start
@@ -33,7 +33,7 @@ class Base:
     @property
     def label(self):
         lb = str(self.__class__.__name__)
-        lb = list(re.findall(self.name_pattern, lb))
+        lb = list(re.findall(self.label_pattern, lb))
         lb = '_'.join([l.upper() for l in lb])
         return lb
 
@@ -176,5 +176,26 @@ class Base:
                 header = header.split(',')
                 data = data.rename(columns=dict(zip(list(data.columns), header)))
         else:
-            data = pd.read_csv(data_path)
+            data = pd.read_csv(data_path, engine='python', encoding='utf-8')
         return data
+
+    @staticmethod
+    def drop_duplicates(rps, subset=None, keep='last'):
+        """
+        由于关系没有唯一性约束，所以重复的关系数据
+        都会被创建，因此，有必要将重复的数据删除，
+        虽然在to_pandas方法中已经删除了重复的数据，
+        但是，很多时候数据是分批存储的，to_pandas
+        方法只会删除当前批的重复数据，最后多批数据
+        和在一起后的仍然可能会有重复数据，所以需要
+        把这部分重复的删掉
+        :param keep:
+        :param subset: 判断重复列时的依据，为None
+        时，依据所有列
+        :param rps: pandas df
+        :return:
+        """
+        if subset is None:
+            subset = list(rps.columns)
+        rps.drop_duplicates(subset=subset, inplace=True, keep=keep)
+        return rps

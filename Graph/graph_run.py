@@ -32,10 +32,11 @@ from Graph.industry_graph import IndGraph
 # prs = pd.read_csv('D:\graph_data\图数据\基本信息\实体\Person.csv', engine='python', encoding='utf-8')
 # prs = getEntityUniqueCodeSYX(prs, 'prs')
 import_path = r'D:\neo4j-community-3.5.14\import\图数据'
+log_save_dir = r'D:\neo4j-community-3.5.14\import\\'
 
 
 def runEtpGraph():
-    gp = EtpGraph()
+    gp = EtpGraph(log_save_path=log_save_dir + 'EtpGraph_log.txt')
 
     # eg.create_index_and_constraint()
     # eg.create_all_nodes()
@@ -49,9 +50,6 @@ def runEtpGraph():
     # getNodes()
     # getRelations()
     getNodesAndRelations()
-
-    if len(gp.logs):
-        gp.save_logs('D:\graph_data\graph_run_logs_for_enterprise.csv')
     pass
 
 
@@ -59,7 +57,7 @@ def runEtpGraph():
 
 
 def runOptGraph():
-    og = OptGraph()
+    og = OptGraph(log_save_path=log_save_dir + 'OptGraph_log.txt')
 
     def getNodesAndRelations():
         nodes, rps = og.get_all_nodes_and_relationships(
@@ -69,8 +67,6 @@ def runOptGraph():
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(og.logs):
-        og.save_logs('D:\graph_data\graph_run_logs_for_og.csv')
     pass
 
 
@@ -78,7 +74,7 @@ def runOptGraph():
 
 
 def runOptRiskGraph():
-    gp = OptRiskGraph()
+    gp = OptRiskGraph(log_save_path=log_save_dir + 'OptRiskGraph_log.txt')
 
     def getNodesAndRelations():
         nodes, rps = gp.get_all_nodes_and_relationships(
@@ -87,8 +83,6 @@ def runOptRiskGraph():
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(gp.logs):
-        gp.save_logs('D:\graph_data\graph_run_logs_for_org.csv')
     pass
 
 
@@ -96,7 +90,7 @@ def runOptRiskGraph():
 
 
 def runDvpGraph():
-    gp = DvpGraph()
+    gp = DvpGraph(log_save_path=log_save_dir + 'DvpGraph_log.txt')
 
     def getNodesAndRelations():
         nodes, rps = gp.get_all_nodes_and_relationships(
@@ -105,8 +99,6 @@ def runDvpGraph():
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(gp.logs):
-        gp.save_logs('D:\graph_data\graph_run_logs_for_dvp.csv')
     pass
 
 
@@ -114,7 +106,7 @@ def runDvpGraph():
 
 
 def runRightsGraph():
-    gp = RightsGraph()
+    gp = RightsGraph(log_save_path=log_save_dir + 'RightsGraph_log.txt')
 
     def getNodesAndRelations():
         nodes, rps = gp.get_all_nodes_and_relationships(
@@ -123,8 +115,6 @@ def runRightsGraph():
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(gp.logs):
-        gp.save_logs('D:\graph_data\graph_run_logs_for_rights.csv')
     pass
 
 
@@ -132,7 +122,7 @@ def runRightsGraph():
 
 
 def runJusGraph():
-    gp = JusGraph()
+    gp = JusGraph(log_save_path=log_save_dir + 'JusGraph_log.txt')
 
     def getNodesAndRelations():
         nodes, rps = gp.get_all_nodes_and_relationships(
@@ -141,8 +131,6 @@ def runJusGraph():
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(gp.logs):
-        gp.save_logs('D:\graph_data\graph_run_logs_for_justice.csv')
     pass
 
 
@@ -150,7 +138,7 @@ def runJusGraph():
 
 
 def runNewsGraph():
-    gp = NewsGraph()
+    gp = NewsGraph(log_save_path=log_save_dir + 'NewsGraph_log.txt')
 
     def getNodesAndRelations():
         nodes, rps = gp.get_all_nodes_and_relationships(
@@ -159,8 +147,6 @@ def runNewsGraph():
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(gp.logs):
-        gp.save_logs('D:\graph_data\graph_run_logs_for_news.csv')
     pass
 
 
@@ -171,29 +157,50 @@ def runIdsGraph():
     gp = IndGraph()
 
     def getNodesAndRelations():
+        etps = pd.read_csv(
+            r'D:\neo4j-community-3.5.14\import\图数据\EtpGraph\nodes\Enterprise.csv',
+            header=None,
+            usecols=[10, 26]
+        )
+        etps = etps.rename(columns=dict(zip(list(etps.columns), ['name', 'url'])))
+        etps.drop_duplicates(subset=['url'], inplace=True)
+        # etps = etps.head(100000)
+        etps = etps.to_dict('record')
         nodes, rps = gp.get_all_nodes_and_relationships(
-            import_path, mode='a')
+            import_path, mode='a', enterprises=etps)
         pass
 
     getNodesAndRelations()
     # og.create_all_relationship()
-    if len(gp.logs):
-        gp.save_logs('D:\graph_data\graph_run_logs_for_ids.csv')
     pass
 
 
-# runIdsGraph()
+runIdsGraph()
 
 
 def f3():
     jtg = JusRulingTextGraph()
     jtg.create_all_relationship()
-    if len(jtg.logs):
-        jtg.save_logs('D:\graph_data\graph_run_logs_for_justice_text.csv')
     pass
 
 
 # f3()
+
+def drop_duplicates_rps():
+    from Graph.relationship import Principal
+
+    pp = Principal()
+    data = pp.read_csv(
+        r'D:\neo4j-community-3.5.14\import\图数据\EtpGraph\relationships\Person_PRINCIPAL_Enterprise.csv',
+        r'D:\neo4j-community-3.5.14\import\图数据\EtpGraph\relationships\Person_PRINCIPAL_Enterprise_Header.csv'
+    )
+    data = pp.drop_duplicates(data)
+    data = {'Person_PRINCIPAL_Enterprise': data}
+    # pp.to_csv(data, folder=r'D:\neo4j-community-3.5.14\import\图数据\EtpGraph', split_header=True)
+    pass
+
+
+# drop_duplicates_rps()
 
 
 def check():
@@ -244,7 +251,7 @@ def check():
             except Exception as e:
                 print(e)
         etp_data = etp_data[~etp_data['exist']]
-        etp_data.drop(['exist'], axis=1)
+        # etp_data.drop(['exist'], axis=1)
         etp.to_csv(etp_data, import_path, split_header=True)
         pass
 
@@ -299,24 +306,24 @@ def getImportCSV():
                 r_fps.append(p)
                 # File.rename(p, p.replace('(', '_').replace(')', ''))
             else:
-                print(p)
+                print(p[len(import_path):])
     for np in n_fps:
         if 'Header' in np:
-            print(np)
+            print(np[len(import_path):])
             # dst = np.replace(import_path, 'D:\G')
             # File.move_file(np, )
     print('-' * 60)
     for np in n_fps:
         if 'Header' not in np:
-            print(np)
+            print(np[len(import_path):])
     print('-'*60)
     for rp in r_fps:
         if 'Header' in rp:
-            print(rp)
+            print(rp[len(import_path):])
     print('-' * 60)
     for rp in r_fps:
         if 'Header' not in rp:
-            print(rp)
+            print(rp[len(import_path):])
     pass
 
 
@@ -326,23 +333,30 @@ def getImportCSV():
 def mapping():
     ns = pd.read_excel(r'D:\neo4j-community-3.5.14\import\neo4j-admin-import.xlsx',
                        sheet_name='实体')
+    mis = []
     for i, r in ns.iterrows():
         if r['头文件路径'].replace('_Header', '') != r['数据文件路径']:
             print('error')
             print(r['数据文件路径'])
-        else:
-            File.copy_file(r['头文件路径'], r['头文件映射路径'])
-            File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
-        pass
+            mis.append(r['数据文件路径'])
     rs = pd.read_excel(r'D:\neo4j-community-3.5.14\import\neo4j-admin-import.xlsx',
                        sheet_name='关系')
     for i, r in rs.iterrows():
         if r['头文件路径'].replace('_Header', '') != r['数据文件路径']:
             print('error')
             print(r['数据文件路径'])
-        else:
-            File.copy_file(r['头文件路径'], r['头文件映射路径'])
-            File.copy_file(r['数据文件路径'], r['数据文件映射路径'])
+            mis.append(r['数据文件路径'])
+    if len(mis):
+        return
+
+    for i, r in ns.iterrows():
+        File.copy_file(import_path + r['头文件路径'], r['头文件映射路径'])
+        File.copy_file(import_path + r['数据文件路径'], r['数据文件映射路径'])
+        pass
+
+    for i, r in rs.iterrows():
+        File.copy_file(import_path + r['头文件路径'], r['头文件映射路径'])
+        File.copy_file(import_path + r['数据文件路径'], r['数据文件映射路径'])
         pass
     pass
 

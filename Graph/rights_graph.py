@@ -25,8 +25,8 @@ from Graph.enterprise_graph import EtpGraph
 
 class RightsGraph(BaseGraph):
 
-    def __init__(self):
-        BaseGraph.__init__(self)
+    def __init__(self, **kwargs):
+        BaseGraph.__init__(self, **kwargs)
         self.base = BaseModel(
             tn='cq_all',
             # tn='qcc.1.1',
@@ -400,7 +400,7 @@ class RightsGraph(BaseGraph):
                 'metaModel': '知识产权',
                 # 'name': '重庆轩烽建材有限公司'
             },
-            limit=100000,
+            # limit=100000,
             # skip=2000,
             no_cursor_timeout=True)
         i, j = 0, 0
@@ -416,6 +416,7 @@ class RightsGraph(BaseGraph):
             else:
                 return None
 
+        _st_ = time.time()
         for ep in enterprises:
             i += 1
             uc = getUniqueCode(ep['url'])
@@ -452,11 +453,12 @@ class RightsGraph(BaseGraph):
                     rc += _rc_
                     nodes.clear()
                     relationships.clear()
-                print(SuccessMessage(
-                    '{}:success trans data to csv '
-                    'round {} and deal {}/{} enterprise'
-                    ''.format(dt.datetime.now(), j, i, etp_count)
+                self.logger.info(SuccessMessage(
+                    'success trans data to csv round {} and '
+                    'deal {}/{} enterprise spend {} seconds.'
+                    ''.format(j, i, etp_count, int(_st_ - time.time()))
                 ))
+                _st_ = time.time()
                 pass
         if save_folder is not None:
             _nc_, _rc_ = self.save_graph(
@@ -466,9 +468,9 @@ class RightsGraph(BaseGraph):
             rc += _rc_
             nodes.clear()
             relationships.clear()
-            print('Summary:')
-            print(' save graph data:')
-            print('   {} nodes'.format(nc))
-            print('   {} relationships'.format(rc))
+            self.logger.info('Summary:')
+            self.logger.info(' save graph data:')
+            self.logger.info('   {} nodes'.format(nc))
+            self.logger.info('   {} relationships'.format(rc))
             pass
         return nodes, relationships

@@ -16,7 +16,7 @@ from Graph.entity import BaseEntity
 class Related(BaseEntity):
 
     """
-    有关对象，泛指一切有关对象
+    有关对象，泛指一切有关对象，当出现了不明确的对象实体类型时，模糊的处理成“有关对象”
     """
     ATTRIBUTES = [
         ['名称', 'NAME'],

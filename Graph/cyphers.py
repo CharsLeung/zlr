@@ -28,6 +28,23 @@ def create_address():
     pass
 
 
+def create_constraint():
+    from Graph.entity import entities
+
+    cst = {}
+    used_entity = entities()
+    for et in used_entity.values():
+        pk = et.primarykey
+        if pk is not None and len(pk):
+            print(f"create constraint on (n:{et.label}) assert n.{pk} is unique")
+        else:
+            print(et.label)
+        pass
+
+
+# create_constraint()
+
+
 def create_index():
     from Graph.entity import entities
 
@@ -42,3 +59,19 @@ def create_index():
 
 
 # create_index()
+
+
+"""
+{
+investorName: "重庆正大软件（集团）有限公司"
+deep: 4
+}
+match p=(investor:Enterprise)-[:INVESTING*..4]->(invested:Enterprise) where investor.NAME = "重庆正大软件（集团）有限公司" return p
+
+删除重复的关系，TAIL返回第一个以外的数据
+MATCH (a)-[r:PRINCIPAL]->(b:Enterprise)
+WITH a, b, TAIL(COLLECT (r)) as rr
+WHERE size(rr)>0
+FOREACH (r IN rr | DELETE r)
+
+"""

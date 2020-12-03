@@ -15,7 +15,8 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from Calf.net.prpcrypt import Prpcrypt
+# from Calf.net.prpcrypt import Prpcrypt
+from Graph import logger
 from Graph.entity import NeoNode
 from Graph.exception import ExceptionInfo
 
@@ -30,7 +31,7 @@ class BaseEntity:
 
     synonyms = {}
 
-    cipher = Prpcrypt('syxsyx')
+    # cipher = Prpcrypt('syxsyx')
     unique_code_pattern = re.compile('[a-zA-Z]+_\w{32}')  # (?<=/)(?=\.)
 
     def __init__(self, data=None, **kwargs):
@@ -173,13 +174,13 @@ class BaseEntity:
                         update.append(h)
                 if len(update):
                     f.write(',' + ','.join(update))
-                    print('update header file:{}'.format(header_path))
+                    logger.info('update header file:{}'.format(header_path))
                 try:
                     data = data.loc[:, exist_header]
                 except Exception as e:
-                    print(e)
-                    print(new_header)
-                    print(exist_header)
+                    logger.error(e)
+                    logger.info(new_header)
+                    logger.info(exist_header)
                 data.to_csv(data_path, index=False,
                             header=False, mode='a')
                 pass

@@ -7,9 +7,36 @@ author = 'Administrator'
 datetime = '2020-03-23 11:09'
 IDE = PyCharm
 """
-from os.path import abspath, dirname
+from Graph.settings import *
 
-project_dir = dirname(dirname(abspath(__file__)))
+config = source_config[Env]
+for n, p in zip(config['workspace'].keys(), config['workspace'].values()):
+    if not os.path.exists(p):
+        os.makedirs(p)
+
+_version_ = '0.1.0'
+workspace = config['workspace']
+print(f'* Graph({_version_}): start')
+print('* Environment:', Env)
+
+from loguru import logger
+from Graph.core.mongo_log_handler import getMongoLogHandler
+
+logger.add(
+        os.path.join(workspace['logs'], 'Graph.log'),
+        level='DEBUG',
+        format='{time:YYYY-MM-DD HH:mm:ss} - {level} - {file} - {line} - {message}',
+        rotation="10 MB", encoding="utf-8", enqueue=True,
+)
+try:
+    # logger.add(
+    #     getMongoLogHandler('Graph', **config['MONGODB_LOG']),
+    #     level='DEBUG',
+    #     format='{message}',
+    # )
+    pass
+except Exception as e:
+    print(e)
 
 workspace = 'D:\graph_data\\'
 desktop = 'C:\\Users\Administrator\Desktop\\'

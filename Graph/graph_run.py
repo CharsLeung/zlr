@@ -170,7 +170,17 @@ def runIdsGraph():
             import_path, mode='a', enterprises=etps)
         pass
 
-    getNodesAndRelations()
+    def drop_duplicates():
+        pr = r'D:\neo4j-community-3.5.14\import\图数据\IndGraph\\'
+        p = pr + r'relationships\BELONG_Industry_BELONG_Industry.csv'
+        ind = pd.read_csv(p)
+        subset = list(ind.columns)
+        ind.drop_duplicates(subset=subset, inplace=True, keep='last')
+        ind.to_csv(pr + r'relationships\BELONG_Industry_BELONG_Industry1.csv', index=False)
+        pass
+
+    # getNodesAndRelations()
+    drop_duplicates()
     # og.create_all_relationship()
     pass
 

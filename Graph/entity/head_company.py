@@ -7,14 +7,13 @@ author = Administrator
 datetime = 2020/5/8 0008 下午 16:32
 from = office desktop
 """
-import warnings
-
 from Graph.entity import BaseEntity
 
 
 class HeadCompany(BaseEntity):
 
     """
+    # TODO(leung):这个可能会被抛弃
     总公司，总公司对象不是某个已存在的企业时，新建一个总公司实体
     """
 

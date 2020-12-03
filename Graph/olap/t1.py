@@ -35,3 +35,12 @@ def read_paid_up_capital_amount():
 def investing():
     # 看对外投资的企业的地域分布
     cp = 'MATCH p=(n1:Enterprise)-[r]->(n2:Enterprise) RETURN n2.ADDRESS'
+    pass
+
+
+def sx():
+    cp = 'MATCH p=(e:Enterprise)-[r:INVOLVE_CASE_SXEnforcement]->(sx:SXEnforcement) RETURN e.NAME ,sx.RELEASE_DATE'
+    data = graph.run(cp).to_data_frame()
+    data.to_csv('SXEnforcementList.csv', index=False)
+
+sx()

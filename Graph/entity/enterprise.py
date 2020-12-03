@@ -7,8 +7,8 @@ author = 'Administrator'
 datetime = '2020-03-16 18:47'
 IDE = PyCharm
 """
-import warnings
 
+from Graph import logger
 from py2neo import Node as NeoNode
 from Graph.entity import BaseEntity, Person, Address, \
     ShareHolder, Invested, Telephone, Email, Branch, \
@@ -99,7 +99,7 @@ class Enterprise(BaseEntity):
                         self[k] = v
         except Exception as e:
             ExceptionInfo(e)
-            print(self.name, ctf)
+            logger.error(f"{self.name}, {ctf}")
 
     def _business(self):
         """
@@ -126,7 +126,7 @@ class Enterprise(BaseEntity):
             pass
         except Exception as e:
             ExceptionInfo(e)
-            print(self.name, bs)
+            logger.error(f"{self.name}, {bs}")
 
     def get_legal_representative(self):
         bs = self.get_format_dict(self.content['工商信息'])
@@ -138,8 +138,8 @@ class Enterprise(BaseEntity):
                 if not p.isEnterprise():
                     p = Related(**lr)
         elif isinstance(lr, list):
-            warnings.warn('Generally, there is only one legal '
-                          'representative, but multiple.')
+            logger.warning('Generally, there is only one legal '
+                           'representative, but multiple.')
             lr = lr[0]
             p = Person(**lr)
             if not p.isPerson():
@@ -147,8 +147,8 @@ class Enterprise(BaseEntity):
                 if not p.isEnterprise():
                     p = Related(**lr)
         else:
-            warnings.warn('Unusual legal representative '
-                          'information.')
+            logger.warning('Unusual legal representative '
+                           'information.')
             p = Person(**{Person.primarykey: lr})
         return p
         pass
@@ -169,8 +169,8 @@ class Enterprise(BaseEntity):
             for m in ms:
                 mgs.append(f(m))
         else:
-            warnings.warn('Generally, the type of major managers is '
-                          'in (dict, list).')
+            logger.warning('Generally, the type of major managers is '
+                           'in (dict, list).')
         return mgs
         pass
 
@@ -208,8 +208,8 @@ class Enterprise(BaseEntity):
             elif isinstance(shs, dict):
                 sh.append(f(shs))
             else:
-                warnings.warn('Generally, the type of share holders is '
-                              'in (dict, list).')
+                logger.warning('Generally, the type of share holders is '
+                               'in (dict, list).')
         return sh
         pass
 
@@ -247,8 +247,8 @@ class Enterprise(BaseEntity):
             elif isinstance(ivs, dict):
                 iv.append(f(ivs))
             else:
-                warnings.warn('Generally, this type is '
-                              'in (dict, list).')
+                logger.warning('Generally, this type is '
+                               'in (dict, list).')
         return iv
 
     def get_telephone_number(self):
@@ -292,8 +292,8 @@ class Enterprise(BaseEntity):
             elif isinstance(bs, dict):
                 brs.append(f(bs))
             else:
-                warnings.warn('Generally, this type is '
-                              'in (dict, list).')
+                logger.warning('Generally, this type is '
+                               'in (dict, list).')
         return brs
 
     def get_head_company(self):
@@ -329,8 +329,8 @@ class Enterprise(BaseEntity):
             elif isinstance(hs, dict):
                 hcs.append(f(hs))
             else:
-                warnings.warn('Generally, this type is '
-                              'in (dict, list).')
+                logger.warning('Generally, this type is '
+                               'in (dict, list).')
         return hcs
 
     def get_construction_project(self):
@@ -353,8 +353,8 @@ class Enterprise(BaseEntity):
             elif isinstance(cp, dict):
                 cps.append(f(cp))
             else:
-                warnings.warn('Generally, this type is '
-                              'in (dict, list).')
+                logger.warning('Generally, this type is '
+                               'in (dict, list).')
         return cps
 
     def get_construction_certificate(self):
@@ -370,6 +370,6 @@ class Enterprise(BaseEntity):
             elif isinstance(cc, dict):
                 ccs.append(f(cc))
             else:
-                warnings.warn('Generally, this type is '
-                              'in (dict, list).')
+                logger.warning('Generally, this type is '
+                               'in (dict, list).')
         return ccs
